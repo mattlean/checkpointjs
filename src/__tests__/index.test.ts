@@ -1,179 +1,189 @@
-import validateInput from '..'
+import checkpoint, { Checkpoint } from '..'
 import ERRS from '../errs'
 
 // TODO: separate tests into groups
 
-describe('validateInput', () => {
-  it('should throw error if input or constraint is an array', () => {
-    expect(() => validateInput([], {})).toThrow(ERRS[0]())
+describe('checkpoint', () => {
+  it('should create a checkpoint', () => {
+    const cp = checkpoint({ foo: 'bar' })
+    expect(cp instanceof Checkpoint).toBe(true)
   })
 
-  it('should return passing result if passing in empty input & constraints', () => {
-    expect(validateInput({}, {}).pass).toBe(true)
+  it('should throw error if data is an array', () => {
+    expect(() => checkpoint([]).validate({ schema: {}, type: 'object' })).toThrow(ERRS[0]())
   })
 
-  it('should return failing result due to missing required input property', () => {
-    const result = validateInput({ bar: 123 }, { foo: { isRequired: true } })
-    expect(result.input['foo']).toBe(undefined) // eslint-disable-line dot-notation
-    expect(result.results.foo.isValid).toBe(false)
+  it('should return passing result if passing in empty data & constraints', () => {
+    expect(checkpoint({}).validate({ schema: {}, type: 'object' }).pass).toBe(true)
+  })
+
+  it('should return failing result due to missing required data property', () => {
+    const result = checkpoint({ bar: 123 }).validate({ schema: { foo: { isRequired: true } }, type: 'object' })
+    expect(result.data['foo']).toBe(undefined) // eslint-disable-line dot-notation
+    expect(result.results.foo.pass).toBe(false)
     expect(result.results.foo.reasons[0]).toBe(ERRS[1]('foo'))
     expect(result.missing.length).toBe(1)
     expect(result.missing[0]).toBe('foo')
     expect(result.pass).toBe(false)
   })
 
-  it('should return passing result for having required input property', () => {
-    const result = validateInput({ bar: 123 }, { bar: { isRequired: true } })
-    expect(result.input['bar']).toBe(123) // eslint-disable-line dot-notation
-    expect(result.results.bar.isValid).toBe(true)
+  it('should return passing result for having required data property', () => {
+    const result = checkpoint({ bar: 123 }).validate({ schema: { bar: { isRequired: true } }, type: 'object' })
+    expect(result.data['bar']).toBe(123) // eslint-disable-line dot-notation
+    expect(result.results.bar.pass).toBe(true)
     expect(result.results.bar.reasons.length).toBe(0)
     expect(result.missing.length).toBe(0)
     expect(result.pass).toBe(true)
   })
 
-  it('should return failing result due to input property type mismatch', () => {
-    const result = validateInput({ foo: 123 }, { foo: { type: 'string' } })
-    expect(typeof result.input['foo']).not.toBe('string') // eslint-disable-line dot-notation
-    expect(result.results.foo.isValid).toBe(false)
+  it('should return failing result due to data property type mismatch', () => {
+    const result = checkpoint({ foo: 123 }).validate({ schema: { foo: { type: 'string' } }, type: 'object' })
+    expect(typeof result.data['foo']).not.toBe('string') // eslint-disable-line dot-notation
+    expect(result.results.foo.pass).toBe(false)
     expect(result.results.foo.reasons[0]).toBe(ERRS[2]('foo', 'string', 'number'))
     expect(result.pass).toBe(false)
   })
 
   it('should return passing result for having matching type', () => {
-    const result = validateInput({ foo: 123 }, { foo: { type: 'number' } })
-    expect(result.input['foo']).toBe(123) // eslint-disable-line dot-notation
-    expect(result.results.foo.isValid).toBe(true)
+    const result = checkpoint({ foo: 123 }).validate({ schema: { foo: { type: 'number' } }, type: 'object' })
+    expect(result.data['foo']).toBe(123) // eslint-disable-line dot-notation
+    expect(result.results.foo.pass).toBe(true)
     expect(result.results.foo.reasons.length).toBe(0)
     expect(result.pass).toBe(true)
   })
 
-  it('should return failing result due to input property type mismatch for null', () => {
-    const result = validateInput({ foo: 123 }, { foo: { type: 'null' } })
-    expect(result.input['foo']).not.toBe(null) // eslint-disable-line dot-notation
-    expect(result.results.foo.isValid).toBe(false)
+  it('should return failing result due to data property type mismatch for null', () => {
+    const result = checkpoint({ foo: 123 }).validate({ schema: { foo: { type: 'null' } }, type: 'object' })
+    expect(result.data['foo']).not.toBe(null) // eslint-disable-line dot-notation
+    expect(result.results.foo.pass).toBe(false)
     expect(result.results.foo.reasons[0]).toBe(ERRS[2]('foo', 'null', 'number'))
     expect(result.pass).toBe(false)
   })
 
   it('should return passing result for having matching null type', () => {
-    const result = validateInput({ foo: null }, { foo: { type: 'null' } })
-    expect(result.input['foo']).toBe(null) // eslint-disable-line dot-notation
-    expect(result.results.foo.isValid).toBe(true)
+    const result = checkpoint({ foo: null }).validate({ schema: { foo: { type: 'null' } }, type: 'object' })
+    expect(result.data['foo']).toBe(null) // eslint-disable-line dot-notation
+    expect(result.results.foo.pass).toBe(true)
     expect(result.results.foo.reasons.length).toBe(0)
     expect(result.pass).toBe(true)
   })
 
-  it('should return failing result due to forbidden null input property value', () => {
-    const result = validateInput({ foo: null }, { foo: {} })
-    expect(result.input['foo']).toBe(null) // eslint-disable-line dot-notation
-    expect(result.results.foo.isValid).toBe(false)
+  it('should return failing result due to forbidden null data property value', () => {
+    const result = checkpoint({ foo: null }).validate({ schema: { foo: {} }, type: 'object' })
+    expect(result.data['foo']).toBe(null) // eslint-disable-line dot-notation
+    expect(result.results.foo.pass).toBe(false)
     expect(result.results.foo.reasons[0]).toBe(ERRS[3]('foo'))
     expect(result.pass).toBe(false)
   })
 
-  it('should return passing result for having null input property value', () => {
-    const result = validateInput({ foo: null }, { foo: { allowNull: true } })
-    expect(result.input['foo']).toBe(null) // eslint-disable-line dot-notation
-    expect(result.results.foo.isValid).toBe(true)
+  it('should return passing result for having null data property value', () => {
+    const result = checkpoint({ foo: null }).validate({ schema: { foo: { allowNull: true } }, type: 'object' })
+    expect(result.data['foo']).toBe(null) // eslint-disable-line dot-notation
+    expect(result.results.foo.pass).toBe(true)
     expect(result.results.foo.reasons.length).toBe(0)
     expect(result.pass).toBe(true)
   })
 
-  it('should return passing result for having null input property value when type matching for string but also allowing null', () => {
-    const result = validateInput({ foo: null }, { foo: { allowNull: true, type: 'string' } })
-    expect(result.input['foo']).toBe(null) // eslint-disable-line dot-notation
-    expect(result.results.foo.isValid).toBe(true)
+  it('should return passing result for having null data property value when type matching for string but also allowing null', () => {
+    const result = checkpoint({ foo: null }).validate({
+      schema: { foo: { allowNull: true, type: 'string' } },
+      type: 'object'
+    })
+    expect(result.data['foo']).toBe(null) // eslint-disable-line dot-notation
+    expect(result.results.foo.pass).toBe(true)
     expect(result.results.foo.reasons.length).toBe(0)
     expect(result.pass).toBe(true)
   })
 
   it('should return failing result due to failing 3 different constraints', () => {
-    const result = validateInput(
-      { bar: 123, baz: null },
-      { foo: { isRequired: true }, bar: { type: 'string' }, baz: {} }
-    )
+    const result = checkpoint({ bar: 123, baz: null }).validate({
+      schema: { foo: { isRequired: true }, bar: { type: 'string' }, baz: {} },
+      type: 'object'
+    })
     /* eslint-disable dot-notation */
-    expect(result.input['foo']).toBe(undefined)
-    expect(result.results.foo.isValid).toBe(false)
+    expect(result.data['foo']).toBe(undefined)
+    expect(result.results.foo.pass).toBe(false)
     expect(result.results.foo.reasons[0]).toBe(ERRS[1]('foo'))
-    expect(typeof result.input['bar']).not.toBe('string')
-    expect(result.results.bar.isValid).toBe(false)
+    expect(typeof result.data['bar']).not.toBe('string')
+    expect(result.results.bar.pass).toBe(false)
     expect(result.results.bar.reasons[0]).toBe(ERRS[2]('bar', 'string', 'number'))
-    expect(result.input['baz']).toBe(null)
+    expect(result.data['baz']).toBe(null)
     /* eslint-enable dot-notation */
-    expect(result.results.baz.isValid).toBe(false)
+    expect(result.results.baz.pass).toBe(false)
     expect(result.results.baz.reasons[0]).toBe(ERRS[3]('baz'))
     expect(result.pass).toBe(false)
   })
 
-  it('should show array of invalid results with showInvalidResults()', () => {
-    const invalidResults = validateInput(
-      { bar: 123, baz: null },
-      { foo: { isRequired: true }, bar: { type: 'string' }, baz: {} }
-    ).showInvalidResults('array')
-    expect(Array.isArray(invalidResults)).toBe(true)
-    expect(invalidResults.length).toBe(3)
-    expect(invalidResults[0]).toBe(ERRS[1]('foo'))
-    expect(invalidResults[1]).toBe(ERRS[2]('bar', 'string', 'number'))
-    expect(invalidResults[2]).toBe(ERRS[3]('baz'))
+  it('should show array of invalid results with showFailedResults()', () => {
+    const failedResults = checkpoint({ bar: 123, baz: null })
+      .validate({ schema: { foo: { isRequired: true }, bar: { type: 'string' }, baz: {} }, type: 'object' })
+      .showFailedResults('array')
+    expect(Array.isArray(failedResults)).toBe(true)
+    expect(failedResults.length).toBe(3)
+    expect(failedResults[0]).toBe(ERRS[1]('foo'))
+    expect(failedResults[1]).toBe(ERRS[2]('bar', 'string', 'number'))
+    expect(failedResults[2]).toBe(ERRS[3]('baz'))
   })
 
-  it('should show object of invalid results with showInvalidResults()', () => {
-    const invalidResults = validateInput(
-      { bar: 123, baz: null },
-      { foo: { isRequired: true }, bar: { type: 'string' }, baz: {} }
-    ).showInvalidResults('object')
-    expect(typeof invalidResults).toBe('object')
+  it('should show object of invalid results with showFailedResults()', () => {
+    const failedResults = checkpoint({ bar: 123, baz: null })
+      .validate({ schema: { foo: { isRequired: true }, bar: { type: 'string' }, baz: {} }, type: 'object' })
+      .showFailedResults('object')
+    expect(typeof failedResults).toBe('object')
     /* eslint-disable dot-notation */
-    expect(Array.isArray(invalidResults['foo'])).toBe(true)
-    expect(invalidResults['foo'].length).toBe(1)
-    expect(invalidResults['foo'][0]).toBe(ERRS[1]('foo'))
-    expect(Array.isArray(invalidResults['bar'])).toBe(true)
-    expect(invalidResults['bar'].length).toBe(1)
-    expect(invalidResults['bar'][0]).toBe(ERRS[2]('bar', 'string', 'number'))
-    expect(Array.isArray(invalidResults['baz'])).toBe(true)
-    expect(invalidResults['baz'].length).toBe(1)
-    expect(invalidResults['baz'][0]).toBe(ERRS[3]('baz'))
+    expect(Array.isArray(failedResults['foo'])).toBe(true)
+    expect(failedResults['foo'].length).toBe(1)
+    expect(failedResults['foo'][0]).toBe(ERRS[1]('foo'))
+    expect(Array.isArray(failedResults['bar'])).toBe(true)
+    expect(failedResults['bar'].length).toBe(1)
+    expect(failedResults['bar'][0]).toBe(ERRS[2]('bar', 'string', 'number'))
+    expect(Array.isArray(failedResults['baz'])).toBe(true)
+    expect(failedResults['baz'].length).toBe(1)
+    expect(failedResults['baz'][0]).toBe(ERRS[3]('baz'))
     /* eslint-enable dot-notation */
   })
 
-  it('should show array of valid results with showValidResults()', () => {
-    const validResults = validateInput(
-      { bar: 123, baz: null },
-      { foo: {}, bar: { isRequired: true, type: 'number' }, baz: { allowNull: true } }
-    ).showValidResults('array')
-    expect(Array.isArray(validResults)).toBe(true)
-    expect(validResults.length).toBe(3)
-    expect(validResults[0]).toBe('foo')
-    expect(validResults[1]).toBe('bar')
-    expect(validResults[2]).toBe('baz')
+  it('should show array of valid results with showPassedResults()', () => {
+    const passedResults = checkpoint({ bar: 123, baz: null })
+      .validate({
+        schema: { foo: {}, bar: { isRequired: true, type: 'number' }, baz: { allowNull: true } },
+        type: 'object'
+      })
+      .showPassedResults('array')
+    expect(Array.isArray(passedResults)).toBe(true)
+    expect(passedResults.length).toBe(3)
+    expect(passedResults[0]).toBe('foo')
+    expect(passedResults[1]).toBe('bar')
+    expect(passedResults[2]).toBe('baz')
   })
 
-  it('should show object of valid results with showValidResults()', () => {
-    const validResults = validateInput(
-      { bar: 123, baz: null },
-      { foo: {}, bar: { isRequired: true, type: 'number' }, baz: { allowNull: true } }
-    ).showValidResults('object')
-    expect(typeof validResults).toBe('object')
+  it('should show object of valid results with showPassedResults()', () => {
+    const passedResults = checkpoint({ bar: 123, baz: null })
+      .validate({
+        schema: { foo: {}, bar: { isRequired: true, type: 'number' }, baz: { allowNull: true } },
+        type: 'object'
+      })
+      .showPassedResults('object')
+    expect(typeof passedResults).toBe('object')
     /* eslint-disable dot-notation */
-    expect(validResults['foo']).toBe(true)
-    expect(validResults['bar']).toBe(true)
-    expect(validResults['baz']).toBe(true)
+    expect(passedResults['foo']).toBe(true)
+    expect(passedResults['bar']).toBe(true)
+    expect(passedResults['baz']).toBe(true)
     /* eslint-enable dot-notation */
   })
 
   it('should return multiple failed results on one key', () => {
-    const result = validateInput(
-      { foo: null },
-      { foo: { allowNull: false, type: 'string' }, bar: { isRequired: true } }
-    )
-    expect(result.input['foo']).toBe(null) // eslint-disable-line dot-notation
-    expect(result.results.foo.isValid).toBe(false)
+    const result = checkpoint({ foo: null }).validate({
+      schema: { foo: { allowNull: false, type: 'string' }, bar: { isRequired: true } },
+      type: 'object'
+    })
+    expect(result.data['foo']).toBe(null) // eslint-disable-line dot-notation
+    expect(result.results.foo.pass).toBe(false)
     expect(result.results.foo.reasons.length).toBe(2)
     expect(result.results.foo.reasons[0]).toBe(ERRS[3]('foo'))
     expect(result.results.foo.reasons[1]).toBe(ERRS[2]('foo', 'string', 'null'))
-    expect(result.input['bar']).toBe(undefined) // eslint-disable-line dot-notation
-    expect(result.results.bar.isValid).toBe(false)
+    expect(result.data['bar']).toBe(undefined) // eslint-disable-line dot-notation
+    expect(result.results.bar.pass).toBe(false)
     expect(result.results.bar.reasons.length).toBe(1)
     expect(result.results.bar.reasons[0]).toBe(ERRS[1]('bar'))
     expect(result.missing.length).toBe(1)
@@ -182,12 +192,12 @@ describe('validateInput', () => {
   })
 
   it('should return only one result when exitASAP option is set', () => {
-    const result = validateInput(
-      { foo: null },
-      { foo: { type: 'string' }, bar: { isRequired: true } },
-      { exitASAP: true }
-    )
-    expect(result.results.foo.isValid).toBe(false)
+    const result = checkpoint({ foo: null }).validate({
+      schema: { foo: { type: 'string' }, bar: { isRequired: true } },
+      options: { exitASAP: true },
+      type: 'object'
+    })
+    expect(result.results.foo.pass).toBe(false)
     expect(result.results.foo.reasons.length).toBe(1)
     expect(Object.keys(result.results.foo.reasons).length).toBe(1)
     expect(result.results.foo.reasons[0]).toBe(ERRS[3]('foo'))
@@ -195,15 +205,15 @@ describe('validateInput', () => {
     expect(result.pass).toBe(false)
   })
 
-  it('should return failing result when requireMode is set to "all" and an input property in constraints is missing', () => {
-    const result = validateInput(
-      { foo: null, bar: 'world' },
-      { foo: { allowNull: true, type: 'string' }, bar: { type: 'string' }, baz: {} },
-      { requireMode: 'all' }
-    )
-    expect(result.results.foo.isValid).toBe(true)
-    expect(result.results.bar.isValid).toBe(true)
-    expect(result.results.baz.isValid).toBe(false)
+  it('should return failing result when requireMode is set to "all" and an data property in constraints is missing', () => {
+    const result = checkpoint({ foo: null, bar: 'world' }).validate({
+      schema: { foo: { allowNull: true, type: 'string' }, bar: { type: 'string' }, baz: {} },
+      options: { requireMode: 'all' },
+      type: 'object'
+    })
+    expect(result.results.foo.pass).toBe(true)
+    expect(result.results.bar.pass).toBe(true)
+    expect(result.results.baz.pass).toBe(false)
     expect(Object.keys(result.results.baz.reasons).length).toBe(1)
     expect(result.results.baz.reasons[0]).toBe(ERRS[1]('baz'))
     expect(result.missing.length).toBe(1)
@@ -211,76 +221,101 @@ describe('validateInput', () => {
     expect(result.pass).toBe(false)
   })
 
-  it('should return passing result when requireMode is set to "all" and an input property in constraints is missing', () => {
-    const result = validateInput(
-      { foo: null, bar: 'world', baz: 'hello' },
-      { foo: { allowNull: true, type: 'string' }, bar: { type: 'string' }, baz: {} },
-      { requireMode: 'all' }
-    )
-    expect(result.results.foo.isValid).toBe(true)
-    expect(result.results.bar.isValid).toBe(true)
-    expect(result.results.baz.isValid).toBe(true)
+  it('should return passing result when requireMode is set to "all" and an data property in constraints is missing', () => {
+    const result = checkpoint({ foo: null, bar: 'world', baz: 'hello' }).validate({
+      schema: { foo: { allowNull: true, type: 'string' }, bar: { type: 'string' }, baz: {} },
+      options: { requireMode: 'all' },
+      type: 'object'
+    })
+    expect(result.results.foo.pass).toBe(true)
+    expect(result.results.bar.pass).toBe(true)
+    expect(result.results.baz.pass).toBe(true)
     expect(result.missing.length).toBe(0)
     expect(result.pass).toBe(true)
   })
 
-  it('should return failing result when requireMode is set to "atLeastOne" and all input properties in constraints are missing', () => {
-    const result = validateInput({ foo: 'hello' }, { bar: { allowNull: true }, baz: {} }, { requireMode: 'atLeastOne' })
+  it('should return failing result when requireMode is set to "atLeastOne" and all data properties in constraints are missing', () => {
+    const result = checkpoint({ foo: 'hello' }).validate({
+      schema: { bar: { allowNull: true }, baz: {} },
+      options: { requireMode: 'atLeastOne' },
+      type: 'object'
+    })
     expect(result.results.requireMode.reasons[0]).toBe(ERRS[4]())
     expect(result.pass).toBe(false)
   })
 
-  it('should return passing result when requireMode is set to "atLeastOne" and at least one input property in constraints is set', () => {
-    const result = validateInput(
-      { foo: 'hello' },
-      { foo: {}, bar: { allowNull: true }, baz: {} },
-      { requireMode: 'atLeastOne' }
-    )
+  it('should return passing result when requireMode is set to "atLeastOne" and at least one data property in constraints is set', () => {
+    const result = checkpoint({ foo: 'hello' }).validate({
+      schema: { foo: {}, bar: { allowNull: true }, baz: {} },
+      options: { requireMode: 'atLeastOne' },
+      type: 'object'
+    })
     expect(result.pass).toBe(true)
   })
 
   it('should return failing result due to using non-date string when date is required', () => {
-    const result = validateInput({ foo: 'hello' }, { foo: { strRules: { isDate: true } } })
-    expect(result.results.foo.isValid).toBe(false)
+    const result = checkpoint({ foo: 'hello' }).validate({
+      schema: { foo: { stringValidation: { isDate: true } } },
+      type: 'object'
+    })
+    expect(result.results.foo.pass).toBe(false)
     expect(result.results.foo.reasons[0]).toBe(ERRS[5]('foo'))
     expect(result.pass).toBe(false)
   })
 
   it('should return passing result due to using date string when date is required', () => {
-    const result = validateInput({ foo: '2000-01-01' }, { foo: { strRules: { isDate: true } } })
-    expect(result.results.foo.isValid).toBe(true)
+    const result = checkpoint({ foo: '2000-01-01' }).validate({
+      schema: { foo: { stringValidation: { isDate: true } } },
+      type: 'object'
+    })
+    expect(result.results.foo.pass).toBe(true)
     expect(result.pass).toBe(true)
   })
 
   it('should return failing result due to using string shorter than min length', () => {
-    const result = validateInput({ foo: '123' }, { foo: { strRules: { isLength: { min: 4 } } } })
-    expect(result.results.foo.isValid).toBe(false)
+    const result = checkpoint({ foo: '123' }).validate({
+      schema: { foo: { stringValidation: { isLength: { min: 4 } } } },
+      type: 'object'
+    })
+    expect(result.results.foo.pass).toBe(false)
     expect(result.results.foo.reasons[0]).toBe(ERRS[6]('foo', 4, 3))
     expect(result.pass).toBe(false)
   })
 
   it('should return passing result due to using string longer than or equal to min length', () => {
-    const result = validateInput({ foo: '123' }, { foo: { strRules: { isLength: { min: 3 } } } })
-    expect(result.results.foo.isValid).toBe(true)
+    const result = checkpoint({ foo: '123' }).validate({
+      schema: { foo: { stringValidation: { isLength: { min: 3 } } } },
+      type: 'object'
+    })
+    expect(result.results.foo.pass).toBe(true)
     expect(result.pass).toBe(true)
   })
 
   it('should return failing result due to using string longer than max length', () => {
-    const result = validateInput({ foo: '123' }, { foo: { strRules: { isLength: { max: 2 } } } })
-    expect(result.results.foo.isValid).toBe(false)
+    const result = checkpoint({ foo: '123' }).validate({
+      schema: { foo: { stringValidation: { isLength: { max: 2 } } } },
+      type: 'object'
+    })
+    expect(result.results.foo.pass).toBe(false)
     expect(result.results.foo.reasons[0]).toBe(ERRS[7]('foo', 2, 3))
     expect(result.pass).toBe(false)
   })
 
   it('should return passing result due to using string less than or equal to max length', () => {
-    const result = validateInput({ foo: '123' }, { foo: { strRules: { isLength: { max: 3 } } } })
-    expect(result.results.foo.isValid).toBe(true)
+    const result = checkpoint({ foo: '123' }).validate({
+      schema: { foo: { stringValidation: { isLength: { max: 3 } } } },
+      type: 'object'
+    })
+    expect(result.results.foo.pass).toBe(true)
     expect(result.pass).toBe(true)
   })
 
   it('should return failing result with 2 results due to failing both min and max length constraints', () => {
-    const result = validateInput({ foo: '123' }, { foo: { strRules: { isLength: { min: 4, max: 2 } } } })
-    expect(result.results.foo.isValid).toBe(false)
+    const result = checkpoint({ foo: '123' }).validate({
+      schema: { foo: { stringValidation: { isLength: { min: 4, max: 2 } } } },
+      type: 'object'
+    })
+    expect(result.results.foo.pass).toBe(false)
     expect(result.results.foo.reasons.length).toBe(2)
     expect(result.results.foo.reasons[0]).toBe(ERRS[6]('foo', 4, 3))
     expect(result.results.foo.reasons[1]).toBe(ERRS[7]('foo', 2, 3))
@@ -288,28 +323,40 @@ describe('validateInput', () => {
   })
 
   it('should return passing result due to passing both min and max length constraints', () => {
-    const result = validateInput({ foo: '123' }, { foo: { strRules: { isLength: { min: 2, max: 4 } } } })
-    expect(result.results.foo.isValid).toBe(true)
+    const result = checkpoint({ foo: '123' }).validate({
+      schema: { foo: { stringValidation: { isLength: { min: 2, max: 4 } } } },
+      type: 'object'
+    })
+    expect(result.results.foo.pass).toBe(true)
     expect(result.pass).toBe(true)
   })
 
   it('should return failing result due to failing isIn string rule', () => {
-    const result = validateInput({ foo: '123' }, { foo: { strRules: { isIn: ['ABC'] } } })
-    expect(result.results.foo.isValid).toBe(false)
+    const result = checkpoint({ foo: '123' }).validate({
+      schema: { foo: { stringValidation: { isIn: ['ABC'] } } },
+      type: 'object'
+    })
+    expect(result.results.foo.pass).toBe(false)
     expect(result.results.foo.reasons[0]).toBe(ERRS[8]('foo', ['ABC']))
     expect(result.pass).toBe(false)
   })
 
   it('should return failing result due to failing isIn string rule with empty array', () => {
-    const result = validateInput({ foo: '123' }, { foo: { strRules: { isIn: [] } } })
-    expect(result.results.foo.isValid).toBe(false)
+    const result = checkpoint({ foo: '123' }).validate({
+      schema: { foo: { stringValidation: { isIn: [] } } },
+      type: 'object'
+    })
+    expect(result.results.foo.pass).toBe(false)
     expect(result.results.foo.reasons[0]).toBe(ERRS[8]('foo', []))
     expect(result.pass).toBe(false)
   })
 
   it('should return passing result due to passing isIn string rule', () => {
-    const result = validateInput({ foo: 'ABC' }, { foo: { strRules: { isIn: ['ABC'] } } })
-    expect(result.results.foo.isValid).toBe(true)
+    const result = checkpoint({ foo: 'ABC' }).validate({
+      schema: { foo: { stringValidation: { isIn: ['ABC'] } } },
+      type: 'object'
+    })
+    expect(result.results.foo.pass).toBe(true)
     expect(result.pass).toBe(true)
   })
 })

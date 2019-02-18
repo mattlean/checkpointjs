@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/IsaacLean/checkpointjs#readme",
   "dependencies": {
+    "lodash": "^4.17.11",
     "validator": "^10.11.0"
   },
   "devDependencies": {
