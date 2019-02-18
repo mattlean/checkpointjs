@@ -1,0 +1,34 @@
+{
+    "env": {
+        "es6": true,
+        "node": true
+    },
+    "extends": [
+        "airbnb-base",
+        "prettier",
+        "plugin:jest/recommended"
+    ],
+    "parserOptions": {
+        "sourceType": "module"
+    },
+    "plugins": [
+        "prettier",
+        "jest"
+    ],
+    "rules": {
+        "indent": [
+            "error",
+            2,
+            { "SwitchCase": 1 }
+        ],
+        "linebreak-style": [
+            "error",
+            "unix"
+        ],
+        "quotes": 0,
+        "semi": [
+            "error",
+            "never"
+        ]
+    }
+}
