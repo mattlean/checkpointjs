@@ -16,6 +16,7 @@
         "jest"
     ],
     "rules": {
+        "dot-notation": 0,
         "indent": [
             "error",
             2,
@@ -26,6 +27,7 @@
             "unix"
         ],
         "quotes": 0,
+        "prefer-destructuring": 0,
         "semi": [
             "error",
             "never"

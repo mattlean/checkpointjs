@@ -1,3 +1,4 @@
+// TODO: rename errs to be more general
 const ERRS = {
   0: () => '"input" argument must be an object',
   1: (key: string) => `"${key}" property is required`,

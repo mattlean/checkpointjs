@@ -2,7 +2,14 @@ import { cloneDeep } from 'lodash'
 import { isIn as validatorIsIn, toDate } from 'validator'
 
 import ERRS from './errs'
-import { OutputType, Rules, TransformationOptions, ValidationResult } from './types'
+import {
+  OutputType,
+  Rules,
+  TransformationOptions,
+  ValidationOptions,
+  ValidationResult,
+  ValidationSchema
+} from './types'
 
 /**
  * Checkpoint class
@@ -19,15 +26,22 @@ export class Checkpoint {
 
   private static addResult(
     validationResult: ValidationResult,
-    key: string,
+    type: 'array' | 'object' | 'primitive' | 'requireMode',
+    key: number | string,
     pass: boolean,
     reason?: string
   ): ValidationResult {
     const vr = validationResult
 
-    if (!vr.results[key]) vr.results[key] = { pass, reasons: [] }
+    let result
 
-    const result = vr.results[key]
+    if (type === 'array' || type === 'object') {
+      if (!vr.results[key]) vr.results[key] = { pass, reasons: [] }
+      result = vr.results[key]
+    } else if (type === 'primitive') {
+      vr.results = { pass, reasons: [] }
+      result = vr.results
+    }
 
     if (pass === false) {
       result.pass = false
@@ -96,9 +110,125 @@ export class Checkpoint {
     }
   }
 
+  /**
+   * Output data
+   * @returns Data
+   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public output(): any {
     return cloneDeep(this.data)
+  }
+
+  private validateObject(validationResult, rules): ValidationResult {
+    const vr = validationResult
+    const { schema } = rules
+    const schemaKeys = Object.keys(schema)
+    const options = rules.options || {}
+    const { requireMode } = options
+    let atLeastOne
+
+    for (let i = 0; i < schemaKeys.length; i += 1) {
+      const currKey = schemaKeys[i]
+      const currVal = this.data[currKey]
+
+      const iterAtLeastOne = Checkpoint.validateSchema(validationResult, currVal, schema[currKey], options, currKey)
+        .atLeastOne
+      if (!atLeastOne && iterAtLeastOne) atLeastOne = iterAtLeastOne
+    }
+
+    if (requireMode === 'atLeastOne' && !atLeastOne) {
+      vr.pass = false
+      Checkpoint.addResult(vr, 'object', 'requireMode', false, ERRS[4]())
+    }
+
+    return vr
+  }
+
+  private static validateSchema(
+    validationResult: ValidationResult,
+    val: any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    schema: ValidationSchema,
+    options?: ValidationOptions,
+    key?: number | string
+  ): { validationResult: ValidationResult; atLeastOne: boolean } {
+    const vr = validationResult
+    const { allowNull, isRequired, stringValidation, type } = schema
+    const returnData = { atLeastOne: false, validationResult: vr }
+
+    const o = options || {}
+    const { exitASAP, requireMode } = o
+
+    if (requireMode === 'atLeastOne') {
+      if (val !== undefined && !returnData.atLeastOne) returnData.atLeastOne = true
+    } else if ((isRequired || requireMode === 'all') && val === undefined) {
+      // Missing required property
+      Checkpoint.addResult(vr, 'object', key, false, ERRS[1](String(key)))
+      vr.missing.push(String(key))
+      if (exitASAP) return returnData
+    }
+
+    if (!allowNull && val === null && type !== 'null') {
+      // Forbidden null
+      Checkpoint.addResult(vr, 'object', key, false, ERRS[3](String(key)))
+      if (exitASAP) return returnData
+    }
+
+    let valType
+    if (val === null) valType = 'null'
+    else valType = typeof val
+
+    if (
+      type &&
+      ((val === null && type !== 'null' && !allowNull) || ((val || val === '' || val === false) && valType !== type))
+    ) {
+      // Type mismatch
+      Checkpoint.addResult(vr, 'object', key, false, ERRS[2](String(key), type, valType))
+      if (exitASAP) return returnData
+    }
+
+    if (
+      stringValidation &&
+      Object.keys(stringValidation).length > 0 &&
+      valType === 'string' &&
+      (type === 'string' || !type)
+    ) {
+      const { isDate, isIn, isLength } = stringValidation
+
+      if (isDate) {
+        if (toDate(val) === null) {
+          Checkpoint.addResult(vr, 'object', key, false, ERRS[5](String(key)))
+          if (exitASAP) return returnData
+        }
+      }
+
+      if (Array.isArray(isIn)) {
+        if (!validatorIsIn(val, isIn)) {
+          Checkpoint.addResult(vr, 'object', key, false, ERRS[8](String(key), isIn))
+          if (exitASAP) return returnData
+        }
+      }
+
+      if (isLength) {
+        if (isLength.min && isLength.min > -1) {
+          if (val.length < isLength.min) {
+            Checkpoint.addResult(vr, 'object', key, false, ERRS[6](String(key), isLength.min, val.length))
+            if (exitASAP) return returnData
+          }
+        }
+
+        if (isLength.max && isLength.max > -1) {
+          if (val.length > isLength.max) {
+            Checkpoint.addResult(vr, 'object', key, false, ERRS[7](String(key), isLength.max, val.length))
+            if (exitASAP) return returnData
+          }
+        }
+      }
+    }
+
+    // Key value is valid
+    if (!vr.results[key]) Checkpoint.addResult(vr, 'object', key, true)
+
+    return returnData
   }
 
   /**
@@ -112,94 +242,12 @@ export class Checkpoint {
     }
 
     const validationResult = this.createValidationResult(rules)
+    const { type } = rules
 
-    const { schema } = rules
-    const options = rules.options || {}
-    let atLeastOne = false
-    const schemaKeys = Object.keys(schema)
-    const { requireMode } = options
-
-    for (let i = 0; i < schemaKeys.length; i += 1) {
-      const currKey = schemaKeys[i]
-      const currVal = this.data[currKey]
-      const { allowNull, isRequired, stringValidation, type } = schema[currKey]
-      const { exitASAP } = options
-
-      if (requireMode === 'atLeastOne') {
-        if (currVal !== undefined && !atLeastOne) atLeastOne = true
-      } else if ((isRequired || requireMode === 'all') && currVal === undefined) {
-        // Missing required property
-        Checkpoint.addResult(validationResult, currKey, false, ERRS[1](currKey))
-        validationResult.missing.push(currKey)
-        if (exitASAP) return validationResult
-      }
-
-      if (!allowNull && currVal === null && type !== 'null') {
-        // Forbidden null
-        Checkpoint.addResult(validationResult, currKey, false, ERRS[3](currKey))
-        if (exitASAP) return validationResult
-      }
-
-      let currValType
-      if (currVal === null) currValType = 'null'
-      else currValType = typeof currVal
-
-      if (
-        type &&
-        ((currVal === null && type !== 'null' && !allowNull) ||
-          ((currVal || currVal === '' || currVal === false) && currValType !== type))
-      ) {
-        // Type mismatch
-        Checkpoint.addResult(validationResult, currKey, false, ERRS[2](currKey, type, currValType))
-        if (exitASAP) return validationResult
-      }
-
-      if (
-        stringValidation &&
-        Object.keys(stringValidation).length > 0 &&
-        currValType === 'string' &&
-        (type === 'string' || !type)
-      ) {
-        const { isDate, isIn, isLength } = stringValidation
-
-        if (isDate) {
-          if (toDate(currVal) === null) {
-            Checkpoint.addResult(validationResult, currKey, false, ERRS[5](currKey))
-            if (exitASAP) return validationResult
-          }
-        }
-
-        if (Array.isArray(isIn)) {
-          if (!validatorIsIn(currVal, isIn)) {
-            Checkpoint.addResult(validationResult, currKey, false, ERRS[8](currKey, isIn))
-            if (exitASAP) return validationResult
-          }
-        }
-
-        if (isLength) {
-          if (isLength.min && isLength.min > -1) {
-            if (currVal.length < isLength.min) {
-              Checkpoint.addResult(validationResult, currKey, false, ERRS[6](currKey, isLength.min, currVal.length))
-              if (exitASAP) return validationResult
-            }
-          }
-
-          if (isLength.max && isLength.max > -1) {
-            if (currVal.length > isLength.max) {
-              Checkpoint.addResult(validationResult, currKey, false, ERRS[7](currKey, isLength.max, currVal.length))
-              if (exitASAP) return validationResult
-            }
-          }
-        }
-      }
-
-      // Key value is valid
-      if (!validationResult.results[currKey]) Checkpoint.addResult(validationResult, currKey, true)
-    }
-
-    if (requireMode === 'atLeastOne' && !atLeastOne) {
-      validationResult.pass = false
-      Checkpoint.addResult(validationResult, 'requireMode', false, ERRS[4]())
+    if (type === 'object') {
+      this.validateObject(validationResult, rules)
+    } else if (type === 'array') {
+      // TODO: check arrayType prop in rules
     }
 
     return validationResult
