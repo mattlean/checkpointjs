@@ -80,6 +80,7 @@ export interface ValidationOptions {
   requireMode?: RequireMode
 }
 
+// NOTE: maybe move results into layer 2 and missing & pass into layer 1
 export interface ValidationResult {
   data: any // eslint-disable-line @typescript-eslint/no-explicit-any
   missing: string[]

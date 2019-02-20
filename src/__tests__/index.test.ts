@@ -3,7 +3,7 @@ import ERRS from '../errs'
 
 // TODO: separate tests into groups
 
-describe('checkpoint', () => {
+describe('Validate object', () => {
   it('should create a checkpoint', () => {
     const cp = checkpoint({ foo: 'bar' })
     expect(cp instanceof Checkpoint).toBe(true)
@@ -346,12 +346,24 @@ describe('checkpoint', () => {
     expect(result.results['foo'].pass).toBe(true)
     expect(result.pass).toBe(true)
   })
+})
 
-  it('should analyze array', () => {
+describe('Validate array', () => {
+  it('array test 1', () => {
     const result = checkpoint([{ foo: 'ABCD' }, { foo: 'EFG' }]).validate({
       schema: { foo: { type: 'string' } },
       type: 'array',
       arrayType: 'object'
     })
+    // TODO
+  })
+
+  it('array test 2', () => {
+    const result = checkpoint([{ foo: 'ABCD' }, { foo: 123 }]).validate({
+      schema: { foo: { type: 'string' } },
+      type: 'array',
+      arrayType: 'object'
+    })
+    // TODO
   })
 })

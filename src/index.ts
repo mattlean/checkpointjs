@@ -42,19 +42,19 @@ export class Checkpoint {
     return r
   }
 
-  private createValidationResult(rules: Rules): ValidationResult {
-    return {
+  private createValidationResult(rules: Rules, type: 'array' | 'object' | 'primitive'): ValidationResult {
+    const validationResult: Partial<ValidationResult> = {
       data: this.data,
       missing: [],
       pass: true,
-      results: {},
       rules,
-      showFailedResults(type?: OutputType) {
+      // TODO: handle array type in show results methods
+      showFailedResults(outputType?: OutputType) {
         const resultsKeys = Object.keys(this.results)
 
         let failedResults
 
-        if (type === 'object') {
+        if (outputType === 'object') {
           failedResults = {}
         } else {
           failedResults = []
@@ -63,7 +63,7 @@ export class Checkpoint {
         resultsKeys.forEach(key => {
           const currResult = this.results[key]
           if (!currResult.pass) {
-            if (type === 'object') {
+            if (outputType === 'object') {
               failedResults[key] = currResult.reasons
             } else {
               failedResults.push(...this.results[key].reasons)
@@ -73,12 +73,12 @@ export class Checkpoint {
 
         return failedResults
       },
-      showPassedResults(type?: OutputType) {
+      showPassedResults(outputType?: OutputType) {
         const resultsKeys = Object.keys(this.results)
 
         let passedResults
 
-        if (type === 'object') {
+        if (outputType === 'object') {
           passedResults = {}
         } else {
           passedResults = []
@@ -87,7 +87,7 @@ export class Checkpoint {
         resultsKeys.forEach(key => {
           const currResult = this.results[key]
           if (currResult.pass) {
-            if (type === 'object') {
+            if (outputType === 'object') {
               passedResults[key] = true
             } else {
               passedResults.push(key)
@@ -98,6 +98,13 @@ export class Checkpoint {
         return passedResults
       }
     }
+    if (type === 'object') {
+      validationResult.results = {}
+    } else if (type === 'array') {
+      validationResult.results = []
+    }
+
+    return validationResult as ValidationResult
   }
 
   /**
@@ -115,28 +122,43 @@ export class Checkpoint {
    * @returns Validation result
    */
   public validate(rules: Rules): ValidationResult {
-    const validationResult = this.createValidationResult(rules)
+    let validationResult
     const { schema, options, type } = rules
 
     if (type === 'object') {
+      validationResult = this.createValidationResult(rules, 'object')
+
       const schemaObjectValidationResult = Checkpoint.validateSchemaObject(
         this.data,
         schema as RulesObject['schema'],
         options
       )
-      validationResult.missing = schemaObjectValidationResult.missing
-      validationResult.pass = schemaObjectValidationResult.pass
+      const { missing, pass } = schemaObjectValidationResult
+
+      validationResult.missing = missing
+      validationResult.pass = pass
       validationResult.results = schemaObjectValidationResult.result
+    } else if (type === 'array') {
+      validationResult = this.createValidationResult(rules, 'array')
+
+      const { arrayType } = rules as RulesArray
+
+      if (arrayType === 'object') {
+        for (let i = 0; i < this.data.length; i += 1) {
+          const currData = this.data[i]
+          const schemaObjectValidationResult = Checkpoint.validateSchemaObject(
+            currData,
+            schema as RulesObject['schema'],
+            options
+          )
+          const { pass } = schemaObjectValidationResult
+
+          // TODO: handle missing here some how
+          validationResult.pass = pass
+          validationResult.results.push(schemaObjectValidationResult)
+        }
+      } // TODO: arrayType === 'primitive'
     }
-    //  else if (type === 'array') {
-    //   const { arrayType } = rules as RulesArray
-    //   if (arrayType === 'object') {
-    //     for (let i = 0; i < this.data.length; i += 1) {
-    //       const currData = this.data[i]
-    //       Checkpoint.validateSchemaObject(validationResult, currData, schema as RulesObject['schema'], options)
-    //     }
-    //   } // TODO: arrayType === 'primitive'
-    // }
 
     return validationResult
   }
