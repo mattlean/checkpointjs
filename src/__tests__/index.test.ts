@@ -9,10 +9,6 @@ describe('checkpoint', () => {
     expect(cp instanceof Checkpoint).toBe(true)
   })
 
-  it('should throw error if data is an array', () => {
-    expect(() => checkpoint([]).validate({ schema: {}, type: 'object' })).toThrow(ERRS[0]())
-  })
-
   it('should return passing result if passing in empty data & constraints', () => {
     expect(checkpoint({}).validate({ schema: {}, type: 'object' }).pass).toBe(true)
   })
@@ -185,17 +181,14 @@ describe('checkpoint', () => {
     expect(result.pass).toBe(false)
   })
 
-  it('should return only one result when exitASAP option is set', () => {
+  it('should return only one failed result when exitASAP option is set', () => {
     const result = checkpoint({ foo: null }).validate({
-      schema: { foo: { type: 'string' }, bar: { isRequired: true } },
+      schema: { foo: { type: 'string' }, bar: { isRequired: true }, baz: { isRequired: true } },
       options: { exitASAP: true },
       type: 'object'
     })
     expect(result.results['foo'].pass).toBe(false)
-    expect(result.results['foo'].reasons.length).toBe(1)
-    expect(Object.keys(result.results['foo'].reasons).length).toBe(1)
-    expect(result.results['foo'].reasons[0]).toBe(ERRS[3]('foo'))
-    expect(result.missing.length).toBe(1)
+    expect(result.showFailedResults('array').length).toBe(1)
     expect(result.pass).toBe(false)
   })
 
@@ -352,5 +345,13 @@ describe('checkpoint', () => {
     })
     expect(result.results['foo'].pass).toBe(true)
     expect(result.pass).toBe(true)
+  })
+
+  it('should analyze array', () => {
+    const result = checkpoint([{ foo: 'ABCD' }, { foo: 'EFG' }]).validate({
+      schema: { foo: { type: 'string' } },
+      type: 'array',
+      arrayType: 'object'
+    })
   })
 })

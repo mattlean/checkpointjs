@@ -2,21 +2,23 @@ export type OutputType = 'array' | 'object'
 
 type RequireMode = 'all' | 'atLeastOne' | 'default'
 
-type ResultArray = ResultObject[]
+type ResultArray = ResultObject[] | ResultValue[]
 
 interface ResultObject {
-  [key: string]: ResultProperty
+  [key: string]: ResultValue
 }
 
-interface ResultProperty {
+export interface ResultValue {
   pass: boolean
   reasons: string[]
 }
 
+type Results = ResultArray | ResultObject | ResultValue
+
 export type Rules = RulesArray | RulesObject | RulesPrimitive
 
-interface RulesArray extends RulesBase {
-  schema: ValidationSchema | { [key: string]: ValidationSchema }
+export interface RulesArray extends RulesBase {
+  schema: Schemas
   type: 'array'
   arrayType: 'object' | 'primitive'
 }
@@ -25,16 +27,41 @@ interface RulesBase {
   options?: ValidationOptions
 }
 
-interface RulesObject extends RulesBase {
-  schema: {
-    [key: string]: ValidationSchema
-  }
+export interface RulesObject extends RulesBase {
+  schema: SchemaObject
   type: 'object'
 }
 
 interface RulesPrimitive extends RulesBase {
-  schema: ValidationSchema
+  schema: SchemaValue
   type: 'primitive'
+}
+
+type Schemas = SchemaObject | SchemaValue
+
+interface SchemaObject {
+  [key: string]: SchemaValue
+}
+
+export interface SchemaObjectValidationResult {
+  atLeastOne: boolean
+  missing: string[]
+  pass: boolean
+  result: ResultObject
+}
+
+export interface SchemaValue {
+  allowNull?: boolean
+  isRequired?: boolean
+  stringValidation?: StringValidation
+  type?: string
+}
+
+export interface SchemaValueValidationResult {
+  atLeastOne: boolean
+  exitASAPTriggered: boolean
+  missing: string[]
+  result: ResultValue
 }
 
 interface StringValidation {
@@ -53,19 +80,12 @@ export interface ValidationOptions {
   requireMode?: RequireMode
 }
 
-export interface ValidationSchema {
-  allowNull?: boolean
-  isRequired?: boolean
-  stringValidation?: StringValidation
-  type?: string
-}
-
 export interface ValidationResult {
-  data: object
+  data: any // eslint-disable-line @typescript-eslint/no-explicit-any
   missing: string[]
   pass: boolean
-  results: ResultArray | ResultObject | ResultProperty
+  results: Results
   rules: Rules
-  showFailedResults: (outputType: OutputType) => ResultProperty[] | ResultObject
-  showPassedResults: (outputType: OutputType) => ResultProperty[] | ResultObject
+  showFailedResults: (outputType: OutputType) => ResultValue[] | ResultObject
+  showPassedResults: (outputType: OutputType) => ResultValue[] | ResultObject
 }
