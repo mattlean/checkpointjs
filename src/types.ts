@@ -109,5 +109,3 @@ export interface ValidationObjectResult extends ValidationBaseResult {
   data: object
   results: ResultsObjectData
 }
-
-export type ValidationResults = ValidationArrayResult | ValidationObjectResult

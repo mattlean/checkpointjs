@@ -14,8 +14,7 @@ import {
   ValidationOptions,
   ValidationArrayResult,
   ValidationBaseResult,
-  ValidationObjectResult,
-  ValidationResults
+  ValidationObjectResult
 } from './types'
 
 /**
@@ -25,15 +24,28 @@ import {
  * @function transform Transform data with options
  */
 export class Checkpoint {
+  /**
+   * Data to be validated or transformed
+   */
   private data: any // eslint-disable-line @typescript-eslint/no-explicit-any
 
+  /**
+   * Create Checkpoint
+   * @param data Data to be validated or transformed
+   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public constructor(data: any) {
     this.data = data
   }
 
-  private static createResultValue(result: ResultValue | null, pass: boolean, reason?: string): ResultValue {
-    const r = result || { pass: true, reasons: [] }
+  /**
+   * Create new result value or build upon existing one
+   * @param resultValue An existing result value or null if a new result value should be created
+   * @param pass True if the result value passed, false if it failed
+   * @param reason (Optional) Reason if the result value failed
+   */
+  private static createResultValue(resultValue: ResultValue | null, pass: boolean, reason?: string): ResultValue {
+    const r = resultValue || { pass: true, reasons: [] }
 
     if (pass === false) {
       r.pass = false
@@ -44,6 +56,11 @@ export class Checkpoint {
     return r
   }
 
+  /**
+   * Creates a validation result to be returned by @function validate
+   * @param rules Rules to validate data against
+   * @param type Type of data to be validated
+   */
   /* eslint-disable lines-between-class-members, no-dupe-class-members, @typescript-eslint/no-explicit-any */
   private createValidationResult(rules: Rules, type: 'array'): ValidationArrayResult
   private createValidationResult(rules: Rules, type: 'object'): ValidationObjectResult
@@ -104,7 +121,7 @@ export class Checkpoint {
   /* eslint-enable lines-between-class-members, no-dupe-class-members */
 
   /**
-   * Output data
+   * Output post-transformed data
    * @returns Data
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -171,6 +188,12 @@ export class Checkpoint {
     throw new Error('Invalid type')
   }
 
+  /**
+   * Validate schema object
+   * @param data Object data to be validated
+   * @param schema Schema to validate object data against
+   * @param options (Optional) Options to influence validation process
+   */
   private static validateSchemaObject(
     data: object,
     schema: RulesObject['schema'],
@@ -215,6 +238,13 @@ export class Checkpoint {
     return returnData
   }
 
+  /**
+   * Validate schema value
+   * @param value Value to be validated
+   * @param schema Schema to validate value against
+   * @param options (Optional) Options to influence validation process
+   * @param key (Optional) Object key or array index associated with value
+   */
   private static validateSchemaValue(
     value: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     schema: SchemaValue,
