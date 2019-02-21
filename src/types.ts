@@ -1,19 +1,30 @@
-export type OutputType = 'array' | 'object'
-
 type RequireMode = 'all' | 'atLeastOne' | 'default'
-
-type ResultArray = ResultObject[] | ResultValue[]
 
 interface ResultObject {
   [key: string]: ResultValue
+}
+
+interface ResultsArrayData extends ResultsBaseData {
+  data: ResultsObjectData[] | ResultsValueData[]
+}
+
+interface ResultsBaseData {
+  pass: boolean
+  missing: string[]
+}
+
+interface ResultsObjectData extends ResultsBaseData {
+  data: ResultObject
+}
+
+interface ResultsValueData extends ResultsBaseData {
+  data: ResultValue
 }
 
 export interface ResultValue {
   pass: boolean
   reasons: string[]
 }
-
-type Results = ResultArray | ResultObject | ResultValue
 
 export type Rules = RulesArray | RulesObject | RulesPrimitive
 
@@ -44,7 +55,8 @@ interface SchemaObject {
 }
 
 export interface SchemaObjectValidationResult {
-  atLeastOne: boolean
+  atLeastOne?: boolean
+  exitASAPTriggered?: boolean
   missing: string[]
   pass: boolean
   result: ResultObject
@@ -58,8 +70,8 @@ export interface SchemaValue {
 }
 
 export interface SchemaValueValidationResult {
-  atLeastOne: boolean
-  exitASAPTriggered: boolean
+  atLeastOne?: boolean
+  exitASAPTriggered?: boolean
   missing: string[]
   result: ResultValue
 }
@@ -80,13 +92,22 @@ export interface ValidationOptions {
   requireMode?: RequireMode
 }
 
-// NOTE: maybe move results into layer 2 and missing & pass into layer 1
-export interface ValidationResult {
-  data: any // eslint-disable-line @typescript-eslint/no-explicit-any
-  missing: string[]
-  pass: boolean
-  results: Results
-  rules: Rules
-  showFailedResults: (outputType: OutputType) => ResultValue[] | ResultObject
-  showPassedResults: (outputType: OutputType) => ResultValue[] | ResultObject
+export interface ValidationArrayResult extends ValidationBaseResult {
+  data: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
+  results: ResultsArrayData
 }
+
+// NOTE: maybe move results into layer 2 and missing & pass into layer 1
+export interface ValidationBaseResult {
+  pass: boolean
+  rules: Rules
+  showFailedResults: () => ResultValue[]
+  showPassedResults: () => ResultValue[]
+}
+
+export interface ValidationObjectResult extends ValidationBaseResult {
+  data: object
+  results: ResultsObjectData
+}
+
+export type ValidationResults = ValidationArrayResult | ValidationObjectResult

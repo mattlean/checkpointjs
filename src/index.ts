@@ -3,7 +3,6 @@ import { isIn as validatorIsIn, toDate } from 'validator'
 
 import ERRS from './errs'
 import {
-  OutputType,
   ResultValue,
   Rules,
   RulesArray,
@@ -13,7 +12,10 @@ import {
   SchemaValue,
   TransformationOptions,
   ValidationOptions,
-  ValidationResult
+  ValidationArrayResult,
+  ValidationBaseResult,
+  ValidationObjectResult,
+  ValidationResults
 } from './types'
 
 /**
@@ -42,70 +44,64 @@ export class Checkpoint {
     return r
   }
 
-  private createValidationResult(rules: Rules, type: 'array' | 'object' | 'primitive'): ValidationResult {
-    const validationResult: Partial<ValidationResult> = {
-      data: this.data,
-      missing: [],
+  /* eslint-disable lines-between-class-members, no-dupe-class-members, @typescript-eslint/no-explicit-any */
+  private createValidationResult(rules: Rules, type: 'array'): ValidationArrayResult
+  private createValidationResult(rules: Rules, type: 'object'): ValidationObjectResult
+  private createValidationResult(rules, type): any {
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+    const validationBaseResult: ValidationBaseResult = {
       pass: true,
       rules,
       // TODO: handle array type in show results methods
-      showFailedResults(outputType?: OutputType) {
-        const resultsKeys = Object.keys(this.results)
+      showFailedResults() {
+        const resultsDataKeys = Object.keys(this.results.data)
+        const failedResults = []
 
-        let failedResults
-
-        if (outputType === 'object') {
-          failedResults = {}
-        } else {
-          failedResults = []
-        }
-
-        resultsKeys.forEach(key => {
-          const currResult = this.results[key]
+        resultsDataKeys.forEach(key => {
+          const currResult = this.results.data[key]
           if (!currResult.pass) {
-            if (outputType === 'object') {
-              failedResults[key] = currResult.reasons
-            } else {
-              failedResults.push(...this.results[key].reasons)
-            }
+            failedResults.push(...this.results.data[key].reasons)
           }
         })
 
         return failedResults
       },
-      showPassedResults(outputType?: OutputType) {
-        const resultsKeys = Object.keys(this.results)
+      showPassedResults() {
+        const resultsDataKeys = Object.keys(this.results.data)
+        const passedResults = []
 
-        let passedResults
-
-        if (outputType === 'object') {
-          passedResults = {}
-        } else {
-          passedResults = []
-        }
-
-        resultsKeys.forEach(key => {
-          const currResult = this.results[key]
+        resultsDataKeys.forEach(key => {
+          const currResult = this.results.data[key]
           if (currResult.pass) {
-            if (outputType === 'object') {
-              passedResults[key] = true
-            } else {
-              passedResults.push(key)
-            }
+            passedResults.push(key)
           }
         })
 
         return passedResults
       }
     }
+
     if (type === 'object') {
-      validationResult.results = {}
-    } else if (type === 'array') {
-      validationResult.results = []
+      const validationObjectResult: ValidationObjectResult = {
+        ...validationBaseResult,
+        data: this.data,
+        results: { data: {}, missing: [], pass: true }
+      }
+      return validationObjectResult
     }
 
-    return validationResult as ValidationResult
+    if (type === 'array') {
+      const validationArrayResult: ValidationArrayResult = {
+        ...validationBaseResult,
+        data: this.data,
+        results: { data: [], missing: [], pass: true }
+      }
+      return validationArrayResult
+    }
+
+    throw new Error('Invalid type provided')
   }
+  /* eslint-enable lines-between-class-members, no-dupe-class-members */
 
   /**
    * Output data
@@ -121,12 +117,12 @@ export class Checkpoint {
    * @param Rules Rules that data is validated with
    * @returns Validation result
    */
-  public validate(rules: Rules): ValidationResult {
+  public validate(rules: Rules): ValidationArrayResult | ValidationObjectResult {
     let validationResult
     const { schema, options, type } = rules
 
     if (type === 'object') {
-      validationResult = this.createValidationResult(rules, 'object')
+      validationResult = this.createValidationResult(rules, 'object') as ValidationObjectResult
 
       const schemaObjectValidationResult = Checkpoint.validateSchemaObject(
         this.data,
@@ -135,11 +131,16 @@ export class Checkpoint {
       )
       const { missing, pass } = schemaObjectValidationResult
 
-      validationResult.missing = missing
+      validationResult.results.missing = missing
+      validationResult.results.pass = pass
       validationResult.pass = pass
-      validationResult.results = schemaObjectValidationResult.result
-    } else if (type === 'array') {
-      validationResult = this.createValidationResult(rules, 'array')
+      validationResult.results.data = schemaObjectValidationResult.result
+
+      return validationResult
+    }
+
+    if (type === 'array') {
+      validationResult = this.createValidationResult(rules, 'array') as ValidationArrayResult
 
       const { arrayType } = rules as RulesArray
 
@@ -151,16 +152,23 @@ export class Checkpoint {
             schema as RulesObject['schema'],
             options
           )
-          const { pass } = schemaObjectValidationResult
+          const { exitASAPTriggered, pass } = schemaObjectValidationResult
 
           // TODO: handle missing here some how
-          validationResult.pass = pass
-          validationResult.results.push(schemaObjectValidationResult)
+          validationResult.results.data.push(schemaObjectValidationResult)
+
+          if (validationResult.pass) {
+            validationResult.pass = pass
+          }
+
+          if (exitASAPTriggered) break
         }
       } // TODO: arrayType === 'primitive'
+
+      return validationResult
     }
 
-    return validationResult
+    throw new Error('Invalid type')
   }
 
   private static validateSchemaObject(
@@ -171,6 +179,7 @@ export class Checkpoint {
     const { requireMode } = options
     const returnData: SchemaObjectValidationResult = {
       atLeastOne: false,
+      exitASAPTriggered: false,
       missing: [],
       pass: true,
       result: {}
@@ -192,7 +201,10 @@ export class Checkpoint {
       if (requireMode === 'atLeastOne' && !returnData.atLeastOne && iterAtLeastOne) {
         returnData.atLeastOne = iterAtLeastOne
       }
-      if (exitASAPTriggered) break
+      if (exitASAPTriggered) {
+        returnData.exitASAPTriggered = true
+        return returnData
+      }
     }
 
     if (requireMode === 'atLeastOne' && !returnData.atLeastOne) {

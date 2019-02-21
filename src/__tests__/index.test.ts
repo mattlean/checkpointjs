@@ -1,5 +1,6 @@
 import checkpoint, { Checkpoint } from '..'
 import ERRS from '../errs'
+import { ValidationObjectResult } from '../types'
 
 // TODO: separate tests into groups
 
@@ -14,69 +15,72 @@ describe('Validate object', () => {
   })
 
   it('should return failing result due to missing required data property', () => {
-    const result = checkpoint({ bar: 123 }).validate({ schema: { foo: { isRequired: true } }, type: 'object' })
+    const result = checkpoint({ bar: 123 }).validate({
+      schema: { foo: { isRequired: true } },
+      type: 'object'
+    })
     expect(result.data['foo']).toBe(undefined)
-    expect(result.results['foo'].pass).toBe(false)
-    expect(result.results['foo'].reasons[0]).toBe(ERRS[1]('foo'))
-    expect(result.missing.length).toBe(1)
-    expect(result.missing[0]).toBe('foo')
+    expect(result.results.data['foo'].pass).toBe(false)
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[1]('foo'))
+    expect(result.results.missing.length).toBe(1)
+    expect(result.results.missing[0]).toBe('foo')
     expect(result.pass).toBe(false)
   })
 
   it('should return passing result for having required data property', () => {
     const result = checkpoint({ bar: 123 }).validate({ schema: { bar: { isRequired: true } }, type: 'object' })
     expect(result.data['bar']).toBe(123)
-    expect(result.results['bar'].pass).toBe(true)
-    expect(result.results['bar'].reasons.length).toBe(0)
-    expect(result.missing.length).toBe(0)
+    expect(result.results.data['bar'].pass).toBe(true)
+    expect(result.results.data['bar'].reasons.length).toBe(0)
+    expect(result.results.missing.length).toBe(0)
     expect(result.pass).toBe(true)
   })
 
   it('should return failing result due to data property type mismatch', () => {
     const result = checkpoint({ foo: 123 }).validate({ schema: { foo: { type: 'string' } }, type: 'object' })
     expect(typeof result.data['foo']).not.toBe('string')
-    expect(result.results['foo'].pass).toBe(false)
-    expect(result.results['foo'].reasons[0]).toBe(ERRS[2]('foo', 'string', 'number'))
+    expect(result.results.data['foo'].pass).toBe(false)
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[2]('foo', 'string', 'number'))
     expect(result.pass).toBe(false)
   })
 
   it('should return passing result for having matching type', () => {
     const result = checkpoint({ foo: 123 }).validate({ schema: { foo: { type: 'number' } }, type: 'object' })
     expect(result.data['foo']).toBe(123)
-    expect(result.results['foo'].pass).toBe(true)
-    expect(result.results['foo'].reasons.length).toBe(0)
+    expect(result.results.data['foo'].pass).toBe(true)
+    expect(result.results.data['foo'].reasons.length).toBe(0)
     expect(result.pass).toBe(true)
   })
 
   it('should return failing result due to data property type mismatch for null', () => {
     const result = checkpoint({ foo: 123 }).validate({ schema: { foo: { type: 'null' } }, type: 'object' })
     expect(result.data['foo']).not.toBe(null)
-    expect(result.results['foo'].pass).toBe(false)
-    expect(result.results['foo'].reasons[0]).toBe(ERRS[2]('foo', 'null', 'number'))
+    expect(result.results.data['foo'].pass).toBe(false)
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[2]('foo', 'null', 'number'))
     expect(result.pass).toBe(false)
   })
 
   it('should return passing result for having matching null type', () => {
     const result = checkpoint({ foo: null }).validate({ schema: { foo: { type: 'null' } }, type: 'object' })
     expect(result.data['foo']).toBe(null)
-    expect(result.results['foo'].pass).toBe(true)
-    expect(result.results['foo'].reasons.length).toBe(0)
+    expect(result.results.data['foo'].pass).toBe(true)
+    expect(result.results.data['foo'].reasons.length).toBe(0)
     expect(result.pass).toBe(true)
   })
 
   it('should return failing result due to forbidden null data property value', () => {
     const result = checkpoint({ foo: null }).validate({ schema: { foo: {} }, type: 'object' })
     expect(result.data['foo']).toBe(null)
-    expect(result.results['foo'].pass).toBe(false)
-    expect(result.results['foo'].reasons[0]).toBe(ERRS[3]('foo'))
+    expect(result.results.data['foo'].pass).toBe(false)
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[3]('foo'))
     expect(result.pass).toBe(false)
   })
 
   it('should return passing result for having null data property value', () => {
     const result = checkpoint({ foo: null }).validate({ schema: { foo: { allowNull: true } }, type: 'object' })
     expect(result.data['foo']).toBe(null)
-    expect(result.results['foo'].pass).toBe(true)
-    expect(result.results['foo'].reasons.length).toBe(0)
+    expect(result.results.data['foo'].pass).toBe(true)
+    expect(result.results.data['foo'].reasons.length).toBe(0)
     expect(result.pass).toBe(true)
   })
 
@@ -86,8 +90,8 @@ describe('Validate object', () => {
       type: 'object'
     })
     expect(result.data['foo']).toBe(null)
-    expect(result.results['foo'].pass).toBe(true)
-    expect(result.results['foo'].reasons.length).toBe(0)
+    expect(result.results.data['foo'].pass).toBe(true)
+    expect(result.results.data['foo'].reasons.length).toBe(0)
     expect(result.pass).toBe(true)
   })
 
@@ -97,18 +101,18 @@ describe('Validate object', () => {
       type: 'object'
     })
     expect(result.data['foo']).toBe(undefined)
-    expect(result.results['foo'].pass).toBe(false)
-    expect(result.results['foo'].reasons[0]).toBe(ERRS[1]('foo'))
+    expect(result.results.data['foo'].pass).toBe(false)
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[1]('foo'))
     expect(typeof result.data['bar']).not.toBe('string')
-    expect(result.results['bar'].pass).toBe(false)
-    expect(result.results['bar'].reasons[0]).toBe(ERRS[2]('bar', 'string', 'number'))
+    expect(result.results.data['bar'].pass).toBe(false)
+    expect(result.results.data['bar'].reasons[0]).toBe(ERRS[2]('bar', 'string', 'number'))
     expect(result.data['baz']).toBe(null)
-    expect(result.results['baz'].pass).toBe(false)
-    expect(result.results['baz'].reasons[0]).toBe(ERRS[3]('baz'))
+    expect(result.results.data['baz'].pass).toBe(false)
+    expect(result.results.data['baz'].reasons[0]).toBe(ERRS[3]('baz'))
     expect(result.pass).toBe(false)
   })
 
-  it('should show array of invalid results with showFailedResults()', () => {
+  it('should show failed results with showFailedResults()', () => {
     const failedResults = checkpoint({ bar: 123, baz: null })
       .validate({ schema: { foo: { isRequired: true }, bar: { type: 'string' }, baz: {} }, type: 'object' })
       .showFailedResults('array')
@@ -119,23 +123,7 @@ describe('Validate object', () => {
     expect(failedResults[2]).toBe(ERRS[3]('baz'))
   })
 
-  it('should show object of invalid results with showFailedResults()', () => {
-    const failedResults = checkpoint({ bar: 123, baz: null })
-      .validate({ schema: { foo: { isRequired: true }, bar: { type: 'string' }, baz: {} }, type: 'object' })
-      .showFailedResults('object')
-    expect(typeof failedResults).toBe('object')
-    expect(Array.isArray(failedResults['foo'])).toBe(true)
-    expect(failedResults['foo'].length).toBe(1)
-    expect(failedResults['foo'][0]).toBe(ERRS[1]('foo'))
-    expect(Array.isArray(failedResults['bar'])).toBe(true)
-    expect(failedResults['bar'].length).toBe(1)
-    expect(failedResults['bar'][0]).toBe(ERRS[2]('bar', 'string', 'number'))
-    expect(Array.isArray(failedResults['baz'])).toBe(true)
-    expect(failedResults['baz'].length).toBe(1)
-    expect(failedResults['baz'][0]).toBe(ERRS[3]('baz'))
-  })
-
-  it('should show array of valid results with showPassedResults()', () => {
+  it('should show passed results with showPassedResults()', () => {
     const passedResults = checkpoint({ bar: 123, baz: null })
       .validate({
         schema: { foo: {}, bar: { isRequired: true, type: 'number' }, baz: { allowNull: true } },
@@ -149,35 +137,22 @@ describe('Validate object', () => {
     expect(passedResults[2]).toBe('baz')
   })
 
-  it('should show object of valid results with showPassedResults()', () => {
-    const passedResults = checkpoint({ bar: 123, baz: null })
-      .validate({
-        schema: { foo: {}, bar: { isRequired: true, type: 'number' }, baz: { allowNull: true } },
-        type: 'object'
-      })
-      .showPassedResults('object')
-    expect(typeof passedResults).toBe('object')
-    expect(passedResults['foo']).toBe(true)
-    expect(passedResults['bar']).toBe(true)
-    expect(passedResults['baz']).toBe(true)
-  })
-
   it('should return multiple failed results on one key', () => {
     const result = checkpoint({ foo: null }).validate({
       schema: { foo: { allowNull: false, type: 'string' }, bar: { isRequired: true } },
       type: 'object'
     })
     expect(result.data['foo']).toBe(null)
-    expect(result.results['foo'].pass).toBe(false)
-    expect(result.results['foo'].reasons.length).toBe(2)
-    expect(result.results['foo'].reasons[0]).toBe(ERRS[3]('foo'))
-    expect(result.results['foo'].reasons[1]).toBe(ERRS[2]('foo', 'string', 'null'))
+    expect(result.results.data['foo'].pass).toBe(false)
+    expect(result.results.data['foo'].reasons.length).toBe(2)
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[3]('foo'))
+    expect(result.results.data['foo'].reasons[1]).toBe(ERRS[2]('foo', 'string', 'null'))
     expect(result.data['bar']).toBe(undefined)
-    expect(result.results['bar'].pass).toBe(false)
-    expect(result.results['bar'].reasons.length).toBe(1)
-    expect(result.results['bar'].reasons[0]).toBe(ERRS[1]('bar'))
-    expect(result.missing.length).toBe(1)
-    expect(result.missing[0]).toBe('bar')
+    expect(result.results.data['bar'].pass).toBe(false)
+    expect(result.results.data['bar'].reasons.length).toBe(1)
+    expect(result.results.data['bar'].reasons[0]).toBe(ERRS[1]('bar'))
+    expect(result.results.missing.length).toBe(1)
+    expect(result.results.missing[0]).toBe('bar')
     expect(result.pass).toBe(false)
   })
 
@@ -187,7 +162,7 @@ describe('Validate object', () => {
       options: { exitASAP: true },
       type: 'object'
     })
-    expect(result.results['foo'].pass).toBe(false)
+    expect(result.results.data['foo'].pass).toBe(false)
     expect(result.showFailedResults('array').length).toBe(1)
     expect(result.pass).toBe(false)
   })
@@ -198,13 +173,13 @@ describe('Validate object', () => {
       options: { requireMode: 'all' },
       type: 'object'
     })
-    expect(result.results['foo'].pass).toBe(true)
-    expect(result.results['bar'].pass).toBe(true)
-    expect(result.results['baz'].pass).toBe(false)
-    expect(Object.keys(result.results['baz'].reasons).length).toBe(1)
-    expect(result.results['baz'].reasons[0]).toBe(ERRS[1]('baz'))
-    expect(result.missing.length).toBe(1)
-    expect(result.missing[0]).toBe('baz')
+    expect(result.results.data['foo'].pass).toBe(true)
+    expect(result.results.data['bar'].pass).toBe(true)
+    expect(result.results.data['baz'].pass).toBe(false)
+    expect(Object.keys(result.results.data['baz'].reasons).length).toBe(1)
+    expect(result.results.data['baz'].reasons[0]).toBe(ERRS[1]('baz'))
+    expect(result.results.missing.length).toBe(1)
+    expect(result.results.missing[0]).toBe('baz')
     expect(result.pass).toBe(false)
   })
 
@@ -214,10 +189,10 @@ describe('Validate object', () => {
       options: { requireMode: 'all' },
       type: 'object'
     })
-    expect(result.results['foo'].pass).toBe(true)
-    expect(result.results['bar'].pass).toBe(true)
-    expect(result.results['baz'].pass).toBe(true)
-    expect(result.missing.length).toBe(0)
+    expect(result.results.data['foo'].pass).toBe(true)
+    expect(result.results.data['bar'].pass).toBe(true)
+    expect(result.results.data['baz'].pass).toBe(true)
+    expect(result.results.missing.length).toBe(0)
     expect(result.pass).toBe(true)
   })
 
@@ -227,7 +202,7 @@ describe('Validate object', () => {
       options: { requireMode: 'atLeastOne' },
       type: 'object'
     })
-    expect(result.results['requireMode'].reasons[0]).toBe(ERRS[4]())
+    expect(result.results.data['requireMode'].reasons[0]).toBe(ERRS[4]())
     expect(result.pass).toBe(false)
   })
 
@@ -245,8 +220,8 @@ describe('Validate object', () => {
       schema: { foo: { stringValidation: { isDate: true } } },
       type: 'object'
     })
-    expect(result.results['foo'].pass).toBe(false)
-    expect(result.results['foo'].reasons[0]).toBe(ERRS[5]('foo'))
+    expect(result.results.data['foo'].pass).toBe(false)
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[5]('foo'))
     expect(result.pass).toBe(false)
   })
 
@@ -255,7 +230,7 @@ describe('Validate object', () => {
       schema: { foo: { stringValidation: { isDate: true } } },
       type: 'object'
     })
-    expect(result.results['foo'].pass).toBe(true)
+    expect(result.results.data['foo'].pass).toBe(true)
     expect(result.pass).toBe(true)
   })
 
@@ -264,8 +239,8 @@ describe('Validate object', () => {
       schema: { foo: { stringValidation: { isLength: { min: 4 } } } },
       type: 'object'
     })
-    expect(result.results['foo'].pass).toBe(false)
-    expect(result.results['foo'].reasons[0]).toBe(ERRS[6]('foo', 4, 3))
+    expect(result.results.data['foo'].pass).toBe(false)
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[6]('foo', 4, 3))
     expect(result.pass).toBe(false)
   })
 
@@ -274,7 +249,7 @@ describe('Validate object', () => {
       schema: { foo: { stringValidation: { isLength: { min: 3 } } } },
       type: 'object'
     })
-    expect(result.results['foo'].pass).toBe(true)
+    expect(result.results.data['foo'].pass).toBe(true)
     expect(result.pass).toBe(true)
   })
 
@@ -283,8 +258,8 @@ describe('Validate object', () => {
       schema: { foo: { stringValidation: { isLength: { max: 2 } } } },
       type: 'object'
     })
-    expect(result.results['foo'].pass).toBe(false)
-    expect(result.results['foo'].reasons[0]).toBe(ERRS[7]('foo', 2, 3))
+    expect(result.results.data['foo'].pass).toBe(false)
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[7]('foo', 2, 3))
     expect(result.pass).toBe(false)
   })
 
@@ -293,7 +268,7 @@ describe('Validate object', () => {
       schema: { foo: { stringValidation: { isLength: { max: 3 } } } },
       type: 'object'
     })
-    expect(result.results['foo'].pass).toBe(true)
+    expect(result.results.data['foo'].pass).toBe(true)
     expect(result.pass).toBe(true)
   })
 
@@ -302,10 +277,10 @@ describe('Validate object', () => {
       schema: { foo: { stringValidation: { isLength: { min: 4, max: 2 } } } },
       type: 'object'
     })
-    expect(result.results['foo'].pass).toBe(false)
-    expect(result.results['foo'].reasons.length).toBe(2)
-    expect(result.results['foo'].reasons[0]).toBe(ERRS[6]('foo', 4, 3))
-    expect(result.results['foo'].reasons[1]).toBe(ERRS[7]('foo', 2, 3))
+    expect(result.results.data['foo'].pass).toBe(false)
+    expect(result.results.data['foo'].reasons.length).toBe(2)
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[6]('foo', 4, 3))
+    expect(result.results.data['foo'].reasons[1]).toBe(ERRS[7]('foo', 2, 3))
     expect(result.pass).toBe(false)
   })
 
@@ -314,7 +289,7 @@ describe('Validate object', () => {
       schema: { foo: { stringValidation: { isLength: { min: 2, max: 4 } } } },
       type: 'object'
     })
-    expect(result.results['foo'].pass).toBe(true)
+    expect(result.results.data['foo'].pass).toBe(true)
     expect(result.pass).toBe(true)
   })
 
@@ -323,8 +298,8 @@ describe('Validate object', () => {
       schema: { foo: { stringValidation: { isIn: ['ABC'] } } },
       type: 'object'
     })
-    expect(result.results['foo'].pass).toBe(false)
-    expect(result.results['foo'].reasons[0]).toBe(ERRS[8]('foo', ['ABC']))
+    expect(result.results.data['foo'].pass).toBe(false)
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[8]('foo', ['ABC']))
     expect(result.pass).toBe(false)
   })
 
@@ -333,8 +308,8 @@ describe('Validate object', () => {
       schema: { foo: { stringValidation: { isIn: [] } } },
       type: 'object'
     })
-    expect(result.results['foo'].pass).toBe(false)
-    expect(result.results['foo'].reasons[0]).toBe(ERRS[8]('foo', []))
+    expect(result.results.data['foo'].pass).toBe(false)
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[8]('foo', []))
     expect(result.pass).toBe(false)
   })
 
@@ -343,27 +318,40 @@ describe('Validate object', () => {
       schema: { foo: { stringValidation: { isIn: ['ABC'] } } },
       type: 'object'
     })
-    expect(result.results['foo'].pass).toBe(true)
+    expect(result.results.data['foo'].pass).toBe(true)
     expect(result.pass).toBe(true)
   })
 })
 
 describe('Validate array', () => {
-  it('array test 1', () => {
+  it('should return basic passing result', () => {
     const result = checkpoint([{ foo: 'ABCD' }, { foo: 'EFG' }]).validate({
       schema: { foo: { type: 'string' } },
       type: 'array',
       arrayType: 'object'
     })
-    // TODO
+    expect(result.results.data.length).toBe(2)
+    expect(result.pass).toBe(true)
   })
 
-  it('array test 2', () => {
+  it('should return basic failing result', () => {
     const result = checkpoint([{ foo: 'ABCD' }, { foo: 123 }]).validate({
       schema: { foo: { type: 'string' } },
       type: 'array',
       arrayType: 'object'
     })
-    // TODO
+    expect(result.results.data.length).toBe(2)
+    expect(result.pass).toBe(false)
+  })
+
+  it('should return one failing result when exitASAP option is enabled', () => {
+    const result = checkpoint([{ foo: 'ABCD' }, { foo: 123 }, { foo: 'EFG' }]).validate({
+      schema: { foo: { type: 'string' } },
+      options: { exitASAP: true },
+      type: 'array',
+      arrayType: 'object'
+    })
+    expect(result.results.data.length).toBe(2)
+    expect(result.pass).toBe(false)
   })
 })
