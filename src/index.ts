@@ -87,12 +87,15 @@ export class Checkpoint {
 
         if (type === 'array') {
           if (arrayType === 'object') {
-            this.results.data.forEach(obj => {
+            this.results.data.forEach((obj, i) => {
               const resultsDataKeys = Object.keys(obj)
 
               resultsDataKeys.forEach(key => {
                 const currResult = obj[key]
                 if (!currResult.pass) {
+                  currResult.reasons.forEach((reason, j) => {
+                    currResult.reasons[j] = `[${i}]: ${reason}`
+                  })
                   failedResults.push(...obj[key].reasons)
                 }
               })
@@ -122,13 +125,13 @@ export class Checkpoint {
 
         if (type === 'array') {
           if (arrayType === 'object') {
-            this.results.data.forEach(obj => {
+            this.results.data.forEach((obj, i) => {
               const resultsDataKeys = Object.keys(obj)
 
               resultsDataKeys.forEach(key => {
                 const currResult = obj[key]
                 if (currResult.pass) {
-                  passedResults.push(...obj[key].reasons)
+                  passedResults.push(`[${i}]: ${key}`)
                 }
               })
             })
@@ -316,7 +319,7 @@ export class Checkpoint {
       if (value !== undefined && !returnData.atLeastOne) returnData.atLeastOne = true
     } else if ((isRequired || requireMode === 'all') && value === undefined) {
       // Missing required property
-      returnData.result = Checkpoint.createResultValue(returnData.result, false, ERRS[1](String(key)))
+      returnData.result = Checkpoint.createResultValue(returnData.result, false, ERRS[1](`"${key}"`))
       returnData.missing.push(String(key))
       if (exitASAP) {
         returnData.exitASAPTriggered = true
@@ -326,7 +329,7 @@ export class Checkpoint {
 
     if (!allowNull && value === null && type !== 'null') {
       // Forbidden null
-      returnData.result = Checkpoint.createResultValue(returnData.result, false, ERRS[3](String(key)))
+      returnData.result = Checkpoint.createResultValue(returnData.result, false, ERRS[3](`"${key}"`))
       if (exitASAP) {
         returnData.exitASAPTriggered = true
         return returnData
@@ -343,7 +346,7 @@ export class Checkpoint {
         ((value || value === '' || value === false) && valType !== type))
     ) {
       // Type mismatch
-      returnData.result = Checkpoint.createResultValue(returnData.result, false, ERRS[2](String(key), type, valType))
+      returnData.result = Checkpoint.createResultValue(returnData.result, false, ERRS[2](`"${key}"`, type, valType))
       if (exitASAP) {
         returnData.exitASAPTriggered = true
         return returnData
@@ -360,7 +363,7 @@ export class Checkpoint {
 
       if (isDate) {
         if (toDate(value) === null) {
-          returnData.result = Checkpoint.createResultValue(returnData.result, false, ERRS[5](String(key)))
+          returnData.result = Checkpoint.createResultValue(returnData.result, false, ERRS[5](`"${key}"`))
           if (exitASAP) {
             returnData.exitASAPTriggered = true
             return returnData
@@ -370,7 +373,7 @@ export class Checkpoint {
 
       if (Array.isArray(isIn)) {
         if (!validatorIsIn(value, isIn)) {
-          returnData.result = Checkpoint.createResultValue(returnData.result, false, ERRS[8](String(key), isIn))
+          returnData.result = Checkpoint.createResultValue(returnData.result, false, ERRS[8](`"${key}"`, isIn))
           if (exitASAP) {
             returnData.exitASAPTriggered = true
             return returnData
@@ -384,7 +387,7 @@ export class Checkpoint {
             returnData.result = Checkpoint.createResultValue(
               returnData.result,
               false,
-              ERRS[6](String(key), isLength.min, value.length)
+              ERRS[6](`"${key}"`, isLength.min, value.length)
             )
             if (exitASAP) {
               returnData.exitASAPTriggered = true
@@ -398,7 +401,7 @@ export class Checkpoint {
             returnData.result = Checkpoint.createResultValue(
               returnData.result,
               false,
-              ERRS[7](String(key), isLength.max, value.length)
+              ERRS[7](`"${key}"`, isLength.max, value.length)
             )
             if (exitASAP) {
               returnData.exitASAPTriggered = true

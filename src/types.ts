@@ -102,8 +102,8 @@ export interface ValidationArrayResult extends ValidationBaseResult {
 export interface ValidationBaseResult {
   pass: boolean
   rules: Rules
-  showFailedResults: () => ResultValue[]
-  showPassedResults: () => ResultValue[]
+  showFailedResults: () => string[]
+  showPassedResults: () => string[]
 }
 
 export interface ValidationObjectResult extends ValidationBaseResult {
