@@ -21,7 +21,7 @@ describe('Validate object', () => {
     })
     expect(result.data['foo']).toBe(undefined)
     expect(result.results.data['foo'].pass).toBe(false)
-    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[1]('foo'))
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[0]('foo', 'object'))
     expect(result.results.missing.length).toBe(1)
     expect(result.results.missing[0]).toBe('foo')
     expect(result.pass).toBe(false)
@@ -40,7 +40,7 @@ describe('Validate object', () => {
     const result = checkpoint({ foo: 123 }).validate({ schema: { foo: { type: 'string' } }, type: 'object' })
     expect(typeof result.data['foo']).not.toBe('string')
     expect(result.results.data['foo'].pass).toBe(false)
-    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[2]('foo', 'string', 'number'))
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[1]('foo', 'string', 'number', 'object'))
     expect(result.pass).toBe(false)
   })
 
@@ -56,7 +56,7 @@ describe('Validate object', () => {
     const result = checkpoint({ foo: 123 }).validate({ schema: { foo: { type: 'null' } }, type: 'object' })
     expect(result.data['foo']).not.toBe(null)
     expect(result.results.data['foo'].pass).toBe(false)
-    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[2]('foo', 'null', 'number'))
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[1]('foo', 'null', 'number', 'object'))
     expect(result.pass).toBe(false)
   })
 
@@ -72,7 +72,7 @@ describe('Validate object', () => {
     const result = checkpoint({ foo: null }).validate({ schema: { foo: {} }, type: 'object' })
     expect(result.data['foo']).toBe(null)
     expect(result.results.data['foo'].pass).toBe(false)
-    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[3]('foo'))
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[2]('foo', 'object'))
     expect(result.pass).toBe(false)
   })
 
@@ -102,13 +102,13 @@ describe('Validate object', () => {
     })
     expect(result.data['foo']).toBe(undefined)
     expect(result.results.data['foo'].pass).toBe(false)
-    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[1]('foo'))
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[0]('foo', 'object'))
     expect(typeof result.data['bar']).not.toBe('string')
     expect(result.results.data['bar'].pass).toBe(false)
-    expect(result.results.data['bar'].reasons[0]).toBe(ERRS[2]('bar', 'string', 'number'))
+    expect(result.results.data['bar'].reasons[0]).toBe(ERRS[1]('bar', 'string', 'number', 'object'))
     expect(result.data['baz']).toBe(null)
     expect(result.results.data['baz'].pass).toBe(false)
-    expect(result.results.data['baz'].reasons[0]).toBe(ERRS[3]('baz'))
+    expect(result.results.data['baz'].reasons[0]).toBe(ERRS[2]('baz', 'object'))
     expect(result.pass).toBe(false)
   })
 
@@ -118,9 +118,9 @@ describe('Validate object', () => {
       .showFailedResults()
     expect(Array.isArray(failedResults)).toBe(true)
     expect(failedResults.length).toBe(3)
-    expect(failedResults[0]).toBe(ERRS[1]('foo'))
-    expect(failedResults[1]).toBe(ERRS[2]('bar', 'string', 'number'))
-    expect(failedResults[2]).toBe(ERRS[3]('baz'))
+    expect(failedResults[0]).toBe(ERRS[0]('foo', 'object'))
+    expect(failedResults[1]).toBe(ERRS[1]('bar', 'string', 'number', 'object'))
+    expect(failedResults[2]).toBe(ERRS[2]('baz', 'object'))
   })
 
   it('should show passed results with showPassedResults()', () => {
@@ -145,12 +145,12 @@ describe('Validate object', () => {
     expect(result.data['foo']).toBe(null)
     expect(result.results.data['foo'].pass).toBe(false)
     expect(result.results.data['foo'].reasons.length).toBe(2)
-    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[3]('foo'))
-    expect(result.results.data['foo'].reasons[1]).toBe(ERRS[2]('foo', 'string', 'null'))
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[2]('foo', 'object'))
+    expect(result.results.data['foo'].reasons[1]).toBe(ERRS[1]('foo', 'string', 'null', 'object'))
     expect(result.data['bar']).toBe(undefined)
     expect(result.results.data['bar'].pass).toBe(false)
     expect(result.results.data['bar'].reasons.length).toBe(1)
-    expect(result.results.data['bar'].reasons[0]).toBe(ERRS[1]('bar'))
+    expect(result.results.data['bar'].reasons[0]).toBe(ERRS[0]('bar', 'object'))
     expect(result.results.missing.length).toBe(1)
     expect(result.results.missing[0]).toBe('bar')
     expect(result.pass).toBe(false)
@@ -177,7 +177,7 @@ describe('Validate object', () => {
     expect(result.results.data['bar'].pass).toBe(true)
     expect(result.results.data['baz'].pass).toBe(false)
     expect(Object.keys(result.results.data['baz'].reasons).length).toBe(1)
-    expect(result.results.data['baz'].reasons[0]).toBe(ERRS[1]('baz'))
+    expect(result.results.data['baz'].reasons[0]).toBe(ERRS[0]('baz', 'object'))
     expect(result.results.missing.length).toBe(1)
     expect(result.results.missing[0]).toBe('baz')
     expect(result.pass).toBe(false)
@@ -202,7 +202,7 @@ describe('Validate object', () => {
       options: { requireMode: 'atLeastOne' },
       type: 'object'
     })
-    expect(result.results.data['requireMode'].reasons[0]).toBe(ERRS[4]())
+    expect(result.results.data['requireMode'].reasons[0]).toBe(ERRS[3]())
     expect(result.pass).toBe(false)
   })
 
@@ -221,7 +221,7 @@ describe('Validate object', () => {
       type: 'object'
     })
     expect(result.results.data['foo'].pass).toBe(false)
-    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[5]('foo'))
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[4]('foo', 'object'))
     expect(result.pass).toBe(false)
   })
 
@@ -240,7 +240,7 @@ describe('Validate object', () => {
       type: 'object'
     })
     expect(result.results.data['foo'].pass).toBe(false)
-    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[6]('foo', 4, 3))
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[5]('foo', 4, 3, 'object'))
     expect(result.pass).toBe(false)
   })
 
@@ -259,7 +259,7 @@ describe('Validate object', () => {
       type: 'object'
     })
     expect(result.results.data['foo'].pass).toBe(false)
-    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[7]('foo', 2, 3))
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[6]('foo', 2, 3, 'object'))
     expect(result.pass).toBe(false)
   })
 
@@ -279,8 +279,8 @@ describe('Validate object', () => {
     })
     expect(result.results.data['foo'].pass).toBe(false)
     expect(result.results.data['foo'].reasons.length).toBe(2)
-    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[6]('foo', 4, 3))
-    expect(result.results.data['foo'].reasons[1]).toBe(ERRS[7]('foo', 2, 3))
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[5]('foo', 4, 3, 'object'))
+    expect(result.results.data['foo'].reasons[1]).toBe(ERRS[6]('foo', 2, 3, 'object'))
     expect(result.pass).toBe(false)
   })
 
@@ -299,7 +299,7 @@ describe('Validate object', () => {
       type: 'object'
     })
     expect(result.results.data['foo'].pass).toBe(false)
-    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[8]('foo', ['ABC']))
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[7]('foo', ['ABC'], 'object'))
     expect(result.pass).toBe(false)
   })
 
@@ -309,7 +309,7 @@ describe('Validate object', () => {
       type: 'object'
     })
     expect(result.results.data['foo'].pass).toBe(false)
-    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[8]('foo', []))
+    expect(result.results.data['foo'].reasons[0]).toBe(ERRS[7]('foo', [], 'object'))
     expect(result.pass).toBe(false)
   })
 
@@ -422,38 +422,44 @@ describe('Validate array', () => {
   })
 
   it('should return failed results with showFailedResults()', () => {
-    const results = checkpoint([
+    const failedResults = checkpoint([
       { foo: 'ABCD', bar: 123 },
       { bar: 456 },
       { foo: 'EFG' },
       { foo: 'HIJK', bar: 'bleh' }
-    ]).validate({
-      schema: { foo: { type: 'string' }, bar: { type: 'number', isRequired: true } },
-      type: 'array',
-      arrayType: 'object'
-    })
-    const failedResults = results.showFailedResults()
+    ])
+      .validate({
+        schema: { foo: { type: 'string' }, bar: { type: 'number', isRequired: true } },
+        type: 'array',
+        arrayType: 'object'
+      })
+      .showFailedResults()
     expect(Array.isArray(failedResults)).toBe(true)
     expect(failedResults.length).toBe(2)
-    expect(failedResults[0]).toBe(ERRS[1]('bar'))
-    expect(failedResults[1]).toBe(ERRS[2]('bar', 'number', 'string'))
+    expect(failedResults[0]).toBe(`[2]: ${ERRS[0]('bar', 'object')}`)
+    expect(failedResults[1]).toBe(`[3]: ${ERRS[1]('bar', 'number', 'string', 'object')}`)
   })
 
   it('should return passed results with showPassedResults()', () => {
-    const results = checkpoint([
+    const passedResults = checkpoint([
       { foo: 'ABCD', bar: 123 },
       { bar: 456 },
       { foo: 'EFG' },
       { foo: 'HIJK', bar: 'bleh' }
-    ]).validate({
-      schema: { foo: { type: 'string' }, bar: { type: 'number', isRequired: true } },
-      type: 'array',
-      arrayType: 'object'
-    })
-    const passedResults = results.showPassedResults()
+    ])
+      .validate({
+        schema: { foo: { type: 'string' }, bar: { type: 'number', isRequired: true } },
+        type: 'array',
+        arrayType: 'object'
+      })
+      .showPassedResults()
     expect(Array.isArray(passedResults)).toBe(true)
     expect(passedResults.length).toBe(6)
-    // expect(passedResults[0]).toBe(ERRS[1]('bar'))
-    // expect(passedResults[1]).toBe(ERRS[2]('bar', 'number', 'string'))
+    expect(passedResults[0]).toBe('[0]: foo')
+    expect(passedResults[1]).toBe('[0]: bar')
+    expect(passedResults[2]).toBe('[1]: foo')
+    expect(passedResults[3]).toBe('[1]: bar')
+    expect(passedResults[4]).toBe('[2]: foo')
+    expect(passedResults[5]).toBe('[3]: foo')
   })
 })

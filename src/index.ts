@@ -188,7 +188,8 @@ export class Checkpoint {
       const schemaObjectValidationResult = Checkpoint.validateSchemaObject(
         this.data,
         schema as RulesObject['schema'],
-        options
+        options,
+        'object'
       )
       const { missing, pass } = schemaObjectValidationResult
 
@@ -212,7 +213,8 @@ export class Checkpoint {
           const schemaObjectValidationResult = Checkpoint.validateSchemaObject(
             currData,
             schema as RulesObject['schema'],
-            options
+            options,
+            'object'
           )
           const { exitASAPTriggered, missing, pass } = schemaObjectValidationResult
 
@@ -251,7 +253,8 @@ export class Checkpoint {
   private static validateSchemaObject(
     data: object,
     schema: RulesObject['schema'],
-    options: ValidationOptions = {}
+    options: ValidationOptions = {},
+    errType?: 'object' | 'primitive'
   ): SchemaObjectValidationResult {
     const { exitASAP, requireMode } = options
     const returnData: SchemaObjectValidationResult = {
@@ -267,7 +270,13 @@ export class Checkpoint {
     for (let i = 0; i < schemaKeys.length; i += 1) {
       const currKey = schemaKeys[i]
       const currValue = data[currKey]
-      const schemaValueValidationResult = Checkpoint.validateSchemaValue(currValue, schema[currKey], options, currKey)
+      const schemaValueValidationResult = Checkpoint.validateSchemaValue(
+        currValue,
+        schema[currKey],
+        options,
+        currKey,
+        errType
+      )
       const { atLeastOne: iterAtLeastOne, exitASAPTriggered, missing, result } = schemaValueValidationResult
 
       returnData.missing = missing
@@ -285,7 +294,7 @@ export class Checkpoint {
 
     if (requireMode === 'atLeastOne' && !returnData.atLeastOne) {
       returnData.pass = false
-      returnData.result['requireMode'] = Checkpoint.createResultValue(null, false, ERRS[4]())
+      returnData.result['requireMode'] = Checkpoint.createResultValue(null, false, ERRS[3]())
     }
 
     return returnData
@@ -302,7 +311,8 @@ export class Checkpoint {
     value: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     schema: SchemaValue,
     options: ValidationOptions = {},
-    key?: number | string
+    txt?: string,
+    errType?: 'object' | 'primitive'
   ): SchemaValueValidationResult {
     const { allowNull, isRequired, stringValidation, type } = schema
     const returnData: SchemaValueValidationResult = {
@@ -319,8 +329,8 @@ export class Checkpoint {
       if (value !== undefined && !returnData.atLeastOne) returnData.atLeastOne = true
     } else if ((isRequired || requireMode === 'all') && value === undefined) {
       // Missing required property
-      returnData.result = Checkpoint.createResultValue(returnData.result, false, ERRS[1](`"${key}"`))
-      returnData.missing.push(String(key))
+      returnData.result = Checkpoint.createResultValue(returnData.result, false, ERRS[0](txt, errType))
+      if (txt) returnData.missing.push(String(txt))
       if (exitASAP) {
         returnData.exitASAPTriggered = true
         return returnData
@@ -329,7 +339,7 @@ export class Checkpoint {
 
     if (!allowNull && value === null && type !== 'null') {
       // Forbidden null
-      returnData.result = Checkpoint.createResultValue(returnData.result, false, ERRS[3](`"${key}"`))
+      returnData.result = Checkpoint.createResultValue(returnData.result, false, ERRS[2](txt, errType))
       if (exitASAP) {
         returnData.exitASAPTriggered = true
         return returnData
@@ -346,7 +356,7 @@ export class Checkpoint {
         ((value || value === '' || value === false) && valType !== type))
     ) {
       // Type mismatch
-      returnData.result = Checkpoint.createResultValue(returnData.result, false, ERRS[2](`"${key}"`, type, valType))
+      returnData.result = Checkpoint.createResultValue(returnData.result, false, ERRS[1](txt, type, valType, errType))
       if (exitASAP) {
         returnData.exitASAPTriggered = true
         return returnData
@@ -363,7 +373,7 @@ export class Checkpoint {
 
       if (isDate) {
         if (toDate(value) === null) {
-          returnData.result = Checkpoint.createResultValue(returnData.result, false, ERRS[5](`"${key}"`))
+          returnData.result = Checkpoint.createResultValue(returnData.result, false, ERRS[4](txt, errType))
           if (exitASAP) {
             returnData.exitASAPTriggered = true
             return returnData
@@ -373,7 +383,7 @@ export class Checkpoint {
 
       if (Array.isArray(isIn)) {
         if (!validatorIsIn(value, isIn)) {
-          returnData.result = Checkpoint.createResultValue(returnData.result, false, ERRS[8](`"${key}"`, isIn))
+          returnData.result = Checkpoint.createResultValue(returnData.result, false, ERRS[7](txt, isIn, errType))
           if (exitASAP) {
             returnData.exitASAPTriggered = true
             return returnData
@@ -387,7 +397,7 @@ export class Checkpoint {
             returnData.result = Checkpoint.createResultValue(
               returnData.result,
               false,
-              ERRS[6](`"${key}"`, isLength.min, value.length)
+              ERRS[5](txt, isLength.min, value.length, errType)
             )
             if (exitASAP) {
               returnData.exitASAPTriggered = true
@@ -401,7 +411,7 @@ export class Checkpoint {
             returnData.result = Checkpoint.createResultValue(
               returnData.result,
               false,
-              ERRS[7](`"${key}"`, isLength.max, value.length)
+              ERRS[6](txt, isLength.max, value.length, errType)
             )
             if (exitASAP) {
               returnData.exitASAPTriggered = true
