@@ -1,4 +1,3 @@
-// TODO: rename errs to be more general
 const ERRS = {
   0: (txt: string, errType?: 'object' | 'primitive') => {
     let newTxt = txt

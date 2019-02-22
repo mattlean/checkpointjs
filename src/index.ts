@@ -60,6 +60,7 @@ export class Checkpoint {
    * Creates a validation result to be returned by @function validate
    * @param rules Rules to validate data against
    * @param type Type of data to be validated
+   * @param arrayType (Conditionally required) Type of array
    */
   /* eslint-disable lines-between-class-members, no-dupe-class-members, @typescript-eslint/no-explicit-any */
   private createValidationResult(rules: Rules, type: 'array', arrayType: 'object' | 'primitive'): ValidationArrayResult
@@ -249,6 +250,7 @@ export class Checkpoint {
    * @param data Object data to be validated
    * @param schema Schema to validate object data against
    * @param options (Optional) Options to influence validation process
+   * @param errType (Optional) Determine formatting of error text
    */
   private static validateSchemaObject(
     data: object,
@@ -305,7 +307,8 @@ export class Checkpoint {
    * @param value Value to be validated
    * @param schema Schema to validate value against
    * @param options (Optional) Options to influence validation process
-   * @param key (Optional) Object key or array index associated with value
+   * @param txt (Optional) Object key, array index, or text associated with value
+   * @param errType (Optional) Determine formatting of error text
    */
   private static validateSchemaValue(
     value: any, // eslint-disable-line @typescript-eslint/no-explicit-any
