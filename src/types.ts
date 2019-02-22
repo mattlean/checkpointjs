@@ -6,19 +6,21 @@ interface ResultObject {
 
 interface ResultsArrayData extends ResultsBaseData {
   data: ResultsObjectData[] | ResultsValueData[]
+  missing: number[]
 }
 
 interface ResultsBaseData {
   pass: boolean
-  missing: string[]
 }
 
 interface ResultsObjectData extends ResultsBaseData {
   data: ResultObject
+  missing: string[]
 }
 
 interface ResultsValueData extends ResultsBaseData {
   data: ResultValue
+  missing: string[]
 }
 
 export interface ResultValue {
@@ -97,7 +99,6 @@ export interface ValidationArrayResult extends ValidationBaseResult {
   results: ResultsArrayData
 }
 
-// NOTE: maybe move results into layer 2 and missing & pass into layer 1
 export interface ValidationBaseResult {
   pass: boolean
   rules: Rules

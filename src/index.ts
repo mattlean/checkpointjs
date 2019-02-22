@@ -121,7 +121,7 @@ export class Checkpoint {
   /* eslint-enable lines-between-class-members, no-dupe-class-members */
 
   /**
-   * Output post-transformed data
+   * Output data
    * @returns Data
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -139,8 +139,6 @@ export class Checkpoint {
     const { schema, options, type } = rules
 
     if (type === 'object') {
-      validationResult = this.createValidationResult(rules, 'object') as ValidationObjectResult
-
       const schemaObjectValidationResult = Checkpoint.validateSchemaObject(
         this.data,
         schema as RulesObject['schema'],
@@ -148,17 +146,17 @@ export class Checkpoint {
       )
       const { missing, pass } = schemaObjectValidationResult
 
-      validationResult.results.missing = missing
-      validationResult.results.pass = pass
+      validationResult = this.createValidationResult(rules, 'object') as ValidationObjectResult
       validationResult.pass = pass
       validationResult.results.data = schemaObjectValidationResult.result
+      validationResult.results.missing = missing
+      validationResult.results.pass = pass
 
       return validationResult
     }
 
     if (type === 'array') {
       validationResult = this.createValidationResult(rules, 'array') as ValidationArrayResult
-
       const { arrayType } = rules as RulesArray
 
       if (arrayType === 'object') {
@@ -169,13 +167,22 @@ export class Checkpoint {
             schema as RulesObject['schema'],
             options
           )
-          const { exitASAPTriggered, pass } = schemaObjectValidationResult
+          const { exitASAPTriggered, missing, pass } = schemaObjectValidationResult
 
-          // TODO: handle missing here some how
-          validationResult.results.data.push(schemaObjectValidationResult)
+          validationResult.results.data.push(schemaObjectValidationResult.result)
 
-          if (validationResult.pass) {
-            validationResult.pass = pass
+          if (missing.length > 0) {
+            validationResult.results.missing.push(i)
+          }
+
+          if (!pass) {
+            if (validationResult.pass) {
+              validationResult.pass = pass
+            }
+
+            if (validationResult.results.pass) {
+              validationResult.results.pass = pass
+            }
           }
 
           if (exitASAPTriggered) break
@@ -199,21 +206,20 @@ export class Checkpoint {
     schema: RulesObject['schema'],
     options: ValidationOptions = {}
   ): SchemaObjectValidationResult {
-    const { requireMode } = options
+    const { exitASAP, requireMode } = options
     const returnData: SchemaObjectValidationResult = {
-      atLeastOne: false,
-      exitASAPTriggered: false,
       missing: [],
       pass: true,
       result: {}
     }
 
+    if (exitASAP) returnData.exitASAPTriggered = false
+    if (requireMode === 'atLeastOne') returnData.atLeastOne = false
+
     const schemaKeys = Object.keys(schema)
     for (let i = 0; i < schemaKeys.length; i += 1) {
       const currKey = schemaKeys[i]
       const currValue = data[currKey]
-
-      // add result to result
       const schemaValueValidationResult = Checkpoint.validateSchemaValue(currValue, schema[currKey], options, currKey)
       const { atLeastOne: iterAtLeastOne, exitASAPTriggered, missing, result } = schemaValueValidationResult
 
@@ -253,13 +259,14 @@ export class Checkpoint {
   ): SchemaValueValidationResult {
     const { allowNull, isRequired, stringValidation, type } = schema
     const returnData: SchemaValueValidationResult = {
-      atLeastOne: false,
-      exitASAPTriggered: false,
       missing: [],
       result: { pass: true, reasons: [] }
     }
 
     const { exitASAP, requireMode } = options
+
+    if (exitASAP) returnData.exitASAPTriggered = false
+    if (requireMode === 'atLeastOne') returnData.atLeastOne = false
 
     if (requireMode === 'atLeastOne') {
       if (value !== undefined && !returnData.atLeastOne) returnData.atLeastOne = true
@@ -357,9 +364,6 @@ export class Checkpoint {
         }
       }
     }
-
-    // Key value is valid
-    if (!returnData.result) returnData.result = Checkpoint.createResultValue(returnData.result, true)
 
     return returnData
   }

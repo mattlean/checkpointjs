@@ -115,7 +115,7 @@ describe('Validate object', () => {
   it('should show failed results with showFailedResults()', () => {
     const failedResults = checkpoint({ bar: 123, baz: null })
       .validate({ schema: { foo: { isRequired: true }, bar: { type: 'string' }, baz: {} }, type: 'object' })
-      .showFailedResults('array')
+      .showFailedResults()
     expect(Array.isArray(failedResults)).toBe(true)
     expect(failedResults.length).toBe(3)
     expect(failedResults[0]).toBe(ERRS[1]('foo'))
@@ -129,7 +129,7 @@ describe('Validate object', () => {
         schema: { foo: {}, bar: { isRequired: true, type: 'number' }, baz: { allowNull: true } },
         type: 'object'
       })
-      .showPassedResults('array')
+      .showPassedResults()
     expect(Array.isArray(passedResults)).toBe(true)
     expect(passedResults.length).toBe(3)
     expect(passedResults[0]).toBe('foo')
@@ -163,7 +163,7 @@ describe('Validate object', () => {
       type: 'object'
     })
     expect(result.results.data['foo'].pass).toBe(false)
-    expect(result.showFailedResults('array').length).toBe(1)
+    expect(result.showFailedResults().length).toBe(1)
     expect(result.pass).toBe(false)
   })
 
@@ -331,6 +331,7 @@ describe('Validate array', () => {
       arrayType: 'object'
     })
     expect(result.results.data.length).toBe(2)
+    expect(result.results.pass).toBe(true)
     expect(result.pass).toBe(true)
   })
 
@@ -341,6 +342,7 @@ describe('Validate array', () => {
       arrayType: 'object'
     })
     expect(result.results.data.length).toBe(2)
+    expect(result.results.pass).toBe(false)
     expect(result.pass).toBe(false)
   })
 
@@ -352,6 +354,70 @@ describe('Validate array', () => {
       arrayType: 'object'
     })
     expect(result.results.data.length).toBe(2)
+    expect(result.results.pass).toBe(false)
     expect(result.pass).toBe(false)
+  })
+
+  it('should return failing result with missing indexes that have missing keys', () => {
+    const result = checkpoint([{ foo: 'ABCD', bar: 123 }, { bar: 456 }, { foo: 'EFG' }, { foo: 'HIJK' }]).validate({
+      schema: { foo: { type: 'string' }, bar: { type: 'number', isRequired: true } },
+      type: 'array',
+      arrayType: 'object'
+    })
+    expect(result.results.data.length).toBe(4)
+    expect(result.results.missing.length).toBe(2)
+    expect(result.results.pass).toBe(false)
+    expect(result.pass).toBe(false)
+  })
+
+  it('should return passing result when all required keys are included', () => {
+    const result = checkpoint([
+      { foo: 'ABCD', bar: 123 },
+      { bar: 456 },
+      { foo: 'EFG', bar: 789 },
+      { foo: 'HIJK', bar: 101112 }
+    ]).validate({
+      schema: { foo: { type: 'string' }, bar: { type: 'number', isRequired: true } },
+      type: 'array',
+      arrayType: 'object'
+    })
+    expect(result.results.data.length).toBe(4)
+    expect(result.results.missing.length).toBe(0)
+    expect(result.results.pass).toBe(true)
+    expect(result.pass).toBe(true)
+  })
+
+  it('should return failing result when atLeastOne condition fails', () => {
+    const result = checkpoint([
+      { foo: 'ABCD', bar: 123 },
+      { bar: 456, baz: 'here' },
+      { foo: 'EFG' },
+      { foo: 'HIJK' }
+    ]).validate({
+      schema: { baz: { type: 'string' } },
+      options: { requireMode: 'atLeastOne' },
+      type: 'array',
+      arrayType: 'object'
+    })
+    expect(result.results.data.length).toBe(4)
+    expect(result.results.pass).toBe(false)
+    expect(result.pass).toBe(false)
+  })
+
+  it('should return passing result when atLeastOne condition passes', () => {
+    const result = checkpoint([
+      { foo: 'ABCD', bar: 123, baz: 'here' },
+      { bar: 456, baz: 'here' },
+      { foo: 'EFG', baz: 'here' },
+      { foo: 'HIJK', baz: 'here' }
+    ]).validate({
+      schema: { baz: { type: 'string' } },
+      options: { requireMode: 'atLeastOne' },
+      type: 'array',
+      arrayType: 'object'
+    })
+    expect(result.results.data.length).toBe(4)
+    expect(result.results.pass).toBe(true)
+    expect(result.pass).toBe(true)
   })
 })
