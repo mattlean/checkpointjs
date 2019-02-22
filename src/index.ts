@@ -12,6 +12,8 @@ import {
   SchemaValueValidationResult,
   TransformationOptions,
   ValidationArrayResult,
+  ValidationArrayObjectResult,
+  ValidationArrayPrimitiveResult,
   ValidationBaseResult,
   ValidationObjectResult,
   ValidationOptions,
@@ -64,7 +66,8 @@ export class Checkpoint {
    * @param arrayType (Conditionally required) Type of array
    */
   /* eslint-disable lines-between-class-members, no-dupe-class-members, @typescript-eslint/no-explicit-any */
-  private createValidationResult(rules: Rules, type: 'array', arrayType: 'object' | 'primitive'): ValidationArrayResult
+  private createValidationResult(rules: Rules, type: 'array', arrayType: 'primitive'): ValidationArrayPrimitiveResult
+  private createValidationResult(rules: Rules, type: 'array', arrayType: 'object'): ValidationArrayObjectResult
   private createValidationResult(rules: Rules, type: 'object', arrayType?): ValidationObjectResult
   private createValidationResult(rules: Rules, type: 'primitive', arrayType?): ValidationPrimitiveResult
   private createValidationResult(rules, type, arrayType?): any {

@@ -4,12 +4,12 @@ interface ResultObject {
   [key: string]: ResultValue
 }
 
-interface ResultsArrayData extends ResultsBaseData {
-  data: ResultsArrayPrimitiveData[] | ResultsObjectData[]
+interface ResultsArrayObjectData extends ResultsBaseData {
+  data: ResultsObjectData[]
 }
 
 interface ResultsArrayPrimitiveData extends ResultsBaseData {
-  data: ResultValue
+  data: ResultValue[]
 }
 
 interface ResultsBaseData {
@@ -91,9 +91,16 @@ interface StringValidation {
 
 export interface TransformationOptions {} // eslint-disable-line @typescript-eslint/no-empty-interface
 
-export interface ValidationArrayResult extends ValidationBaseResult {
-  data: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
-  results: ResultsArrayData
+export type ValidationArrayResult = ValidationArrayObjectResult | ValidationArrayPrimitiveResult
+
+export interface ValidationArrayObjectResult extends ValidationBaseResult {
+  data: object[]
+  results: ResultsArrayObjectData
+}
+
+export interface ValidationArrayPrimitiveResult extends ValidationBaseResult {
+  data: boolean[] | number[] | string[] | null[]
+  results: ResultsArrayPrimitiveData
 }
 
 export interface ValidationBaseResult {

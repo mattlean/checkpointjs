@@ -1,10 +1,15 @@
 import checkpoint, { Checkpoint } from '..'
 import ERRS from '../errs'
-import { ValidationArrayResult, ValidationObjectResult, ValidationPrimitiveResult } from '../types'
+import {
+  ValidationArrayObjectResult,
+  ValidationArrayPrimitiveResult,
+  ValidationObjectResult,
+  ValidationPrimitiveResult
+} from '../types'
 
 describe('Validate primitive', () => {
   // TODO: test stringValidation
-  it('should return passing result when passing null check', () => {
+  it('should return passed result when passing null check', () => {
     const result = checkpoint(null).validate({
       schema: { allowNull: true },
       type: 'primitive'
@@ -21,7 +26,7 @@ describe('Validate primitive', () => {
     expect(result.results.data.reasons[0]).toBe(ERRS[2]('Value'))
   })
 
-  it('should return passing result when passing required check', () => {
+  it('should return passed result when passing required check', () => {
     const result = checkpoint('heya').validate({
       schema: { isRequired: true },
       type: 'primitive'
@@ -62,7 +67,7 @@ describe('Validate object', () => {
     expect(cp instanceof Checkpoint).toBe(true)
   })
 
-  it('should return passing result if passing in empty data & constraints', () => {
+  it('should return passed result if passing in empty data & constraints', () => {
     expect(checkpoint({}).validate({ schema: {}, type: 'object' }).pass).toBe(true)
   })
 
@@ -80,7 +85,7 @@ describe('Validate object', () => {
     expect(result.pass).toBe(false)
   })
 
-  it('should return passing result for having required data property', () => {
+  it('should return passed result for having required data property', () => {
     const result = checkpoint({ bar: 123 }).validate({
       schema: { bar: { isRequired: true } },
       type: 'object'
@@ -100,7 +105,7 @@ describe('Validate object', () => {
     expect(result.pass).toBe(false)
   })
 
-  it('should return passing result for having matching type', () => {
+  it('should return passed result for having matching type', () => {
     const result = checkpoint({ foo: 123 }).validate({ schema: { foo: { type: 'number' } }, type: 'object' })
     expect(result.data['foo']).toBe(123)
     expect(result.results.data['foo'].pass).toBe(true)
@@ -116,7 +121,7 @@ describe('Validate object', () => {
     expect(result.pass).toBe(false)
   })
 
-  it('should return passing result for having matching null type', () => {
+  it('should return passed result for having matching null type', () => {
     const result = checkpoint({ foo: null }).validate({ schema: { foo: { type: 'null' } }, type: 'object' })
     expect(result.data['foo']).toBe(null)
     expect(result.results.data['foo'].pass).toBe(true)
@@ -132,7 +137,7 @@ describe('Validate object', () => {
     expect(result.pass).toBe(false)
   })
 
-  it('should return passing result for having null data property value', () => {
+  it('should return passed result for having null data property value', () => {
     const result = checkpoint({ foo: null }).validate({ schema: { foo: { allowNull: true } }, type: 'object' })
     expect(result.data['foo']).toBe(null)
     expect(result.results.data['foo'].pass).toBe(true)
@@ -140,7 +145,7 @@ describe('Validate object', () => {
     expect(result.pass).toBe(true)
   })
 
-  it('should return passing result for having null data property value when type matching for string but also allowing null', () => {
+  it('should return passed result for having null data property value when type matching for string but also allowing null', () => {
     const result = checkpoint({ foo: null }).validate({
       schema: { foo: { allowNull: true, type: 'string' } },
       type: 'object'
@@ -239,7 +244,7 @@ describe('Validate object', () => {
     expect(result.pass).toBe(false)
   })
 
-  it('should return passing result when requireMode is set to "all" and an data property in constraints is missing', () => {
+  it('should return passed result when requireMode is set to "all" and an data property in constraints is missing', () => {
     const result = checkpoint({ foo: null, bar: 'world', baz: 'hello' }).validate({
       schema: { foo: { allowNull: true, type: 'string' }, bar: { type: 'string' }, baz: {} },
       options: { requireMode: 'all' },
@@ -262,7 +267,7 @@ describe('Validate object', () => {
     expect(result.pass).toBe(false)
   })
 
-  it('should return passing result when requireMode is set to "atLeastOne" and at least one data property in constraints is set', () => {
+  it('should return passed result when requireMode is set to "atLeastOne" and at least one data property in constraints is set', () => {
     const result = checkpoint({ foo: 'hello' }).validate({
       schema: { foo: {}, bar: { allowNull: true }, baz: {} },
       options: { requireMode: 'atLeastOne' },
@@ -281,7 +286,7 @@ describe('Validate object', () => {
     expect(result.pass).toBe(false)
   })
 
-  it('should return passing result due to using date string when date is required', () => {
+  it('should return passed result due to using date string when date is required', () => {
     const result = checkpoint({ foo: '2000-01-01' }).validate({
       schema: { foo: { stringValidation: { isDate: true } } },
       type: 'object'
@@ -300,7 +305,7 @@ describe('Validate object', () => {
     expect(result.pass).toBe(false)
   })
 
-  it('should return passing result due to using string longer than or equal to min length', () => {
+  it('should return passed result due to using string longer than or equal to min length', () => {
     const result = checkpoint({ foo: '123' }).validate({
       schema: { foo: { stringValidation: { isLength: { min: 3 } } } },
       type: 'object'
@@ -319,7 +324,7 @@ describe('Validate object', () => {
     expect(result.pass).toBe(false)
   })
 
-  it('should return passing result due to using string less than or equal to max length', () => {
+  it('should return passed result due to using string less than or equal to max length', () => {
     const result = checkpoint({ foo: '123' }).validate({
       schema: { foo: { stringValidation: { isLength: { max: 3 } } } },
       type: 'object'
@@ -340,7 +345,7 @@ describe('Validate object', () => {
     expect(result.pass).toBe(false)
   })
 
-  it('should return passing result due to passing both min and max length constraints', () => {
+  it('should return passed result due to passing both min and max length constraints', () => {
     const result = checkpoint({ foo: '123' }).validate({
       schema: { foo: { stringValidation: { isLength: { min: 2, max: 4 } } } },
       type: 'object'
@@ -369,7 +374,7 @@ describe('Validate object', () => {
     expect(result.pass).toBe(false)
   })
 
-  it('should return passing result due to passing isIn string rule', () => {
+  it('should return passed result due to passing isIn string rule', () => {
     const result = checkpoint({ foo: 'ABC' }).validate({
       schema: { foo: { stringValidation: { isIn: ['ABC'] } } },
       type: 'object'
@@ -381,13 +386,12 @@ describe('Validate object', () => {
 
 describe('Validate primitive array', () => {
   // TODO: test stringValidation
-  // TODO: test requireMode all
-  it('should return basic passing result', () => {
+  it('should return basic passed result', () => {
     const result = checkpoint(['ABCD', 'EFG']).validate({
       schema: { type: 'string' },
       type: 'array',
       arrayType: 'primitive'
-    }) as ValidationArrayResult
+    }) as ValidationArrayPrimitiveResult
     expect(result.results.data.length).toBe(2)
     expect(result.results.pass).toBe(true)
     expect(result.pass).toBe(true)
@@ -398,7 +402,7 @@ describe('Validate primitive array', () => {
       schema: { type: 'string' },
       type: 'array',
       arrayType: 'primitive'
-    }) as ValidationArrayResult
+    }) as ValidationArrayPrimitiveResult
     expect(result.results.data.length).toBe(2)
     expect(result.results.pass).toBe(false)
     expect(result.pass).toBe(false)
@@ -410,7 +414,7 @@ describe('Validate primitive array', () => {
       options: { exitASAP: true },
       type: 'array',
       arrayType: 'primitive'
-    }) as ValidationArrayResult
+    }) as ValidationArrayPrimitiveResult
     expect(result.results.data.length).toBe(2)
     expect(result.results.pass).toBe(false)
     expect(result.pass).toBe(false)
@@ -421,19 +425,19 @@ describe('Validate primitive array', () => {
       schema: { type: 'string', isRequired: true },
       type: 'array',
       arrayType: 'primitive'
-    }) as ValidationArrayResult
+    }) as ValidationArrayPrimitiveResult
     expect(result.results.data.length).toBe(5)
     expect(result.results.missing.length).toBe(2)
     expect(result.results.pass).toBe(false)
     expect(result.pass).toBe(false)
   })
 
-  it('should return passing result when all required values are included', () => {
+  it('should return passed result when all required values are included', () => {
     const result = checkpoint(['ABCD', 'imastring', 'imastring2', 'EFG', 'HIJK']).validate({
       schema: { type: 'string', isRequired: true },
       type: 'array',
       arrayType: 'primitive'
-    }) as ValidationArrayResult
+    }) as ValidationArrayPrimitiveResult
     expect(result.results.data.length).toBe(5)
     expect(result.results.missing.length).toBe(0)
     expect(result.results.pass).toBe(true)
@@ -446,19 +450,19 @@ describe('Validate primitive array', () => {
       options: { requireMode: 'atLeastOne' },
       type: 'array',
       arrayType: 'primitive'
-    }) as ValidationArrayResult
+    }) as ValidationArrayPrimitiveResult
     expect(result.results.data.length).toBe(4)
     expect(result.results.pass).toBe(false)
     expect(result.pass).toBe(false)
   })
 
-  it('should return passing result when atLeastOne condition passes', () => {
+  it('should return passed result when atLeastOne condition passes', () => {
     const result = checkpoint([undefined, 'here', undefined]).validate({
       schema: { type: 'string' },
       options: { requireMode: 'atLeastOne' },
       type: 'array',
       arrayType: 'primitive'
-    }) as ValidationArrayResult
+    }) as ValidationArrayPrimitiveResult
     expect(result.results.data.length).toBe(3)
     expect(result.results.pass).toBe(true)
     expect(result.pass).toBe(true)
@@ -493,16 +497,42 @@ describe('Validate primitive array', () => {
     expect(passedResults[2]).toBe(4)
     expect(passedResults[3]).toBe(5)
   })
+
+  it('should return passed result when requireAll condition passes', () => {
+    const result = checkpoint(['ABCD', 123, 456, 'EFG', 'HIJK', 'bleh']).validate({
+      schema: {},
+      options: { requireMode: 'all' },
+      type: 'array',
+      arrayType: 'primitive'
+    }) as ValidationArrayPrimitiveResult
+    expect(result.results.data.length).toBe(6)
+    expect(result.results.pass).toBe(true)
+    expect(result.pass).toBe(true)
+  })
+
+  it('should return failed result when requireAll condition passes', () => {
+    const result = checkpoint(['ABCD', undefined, undefined, 'EFG', 'HIJK', 'bleh']).validate({
+      schema: {},
+      options: { requireMode: 'all' },
+      type: 'array',
+      arrayType: 'primitive'
+    }) as ValidationArrayPrimitiveResult
+    expect(result.results.data.length).toBe(6)
+    expect(result.results.data[1].reasons[0]).toBe(ERRS[0]('Value'))
+    expect(result.results.data[2].reasons[0]).toBe(ERRS[0]('Value'))
+    expect(result.results.pass).toBe(false)
+    expect(result.pass).toBe(false)
+  })
 })
 
 describe('Validate object array', () => {
   // TODO: test stringValidation
-  it('should return basic passing result', () => {
+  it('should return basic passed result', () => {
     const result = checkpoint([{ foo: 'ABCD' }, { foo: 'EFG' }]).validate({
       schema: { foo: { type: 'string' } },
       type: 'array',
       arrayType: 'object'
-    }) as ValidationArrayResult
+    }) as ValidationArrayObjectResult
     expect(result.results.data.length).toBe(2)
     expect(result.results.pass).toBe(true)
     expect(result.pass).toBe(true)
@@ -513,7 +543,7 @@ describe('Validate object array', () => {
       schema: { foo: { type: 'string' } },
       type: 'array',
       arrayType: 'object'
-    }) as ValidationArrayResult
+    }) as ValidationArrayObjectResult
     expect(result.results.data.length).toBe(2)
     expect(result.results.pass).toBe(false)
     expect(result.pass).toBe(false)
@@ -525,7 +555,7 @@ describe('Validate object array', () => {
       options: { exitASAP: true },
       type: 'array',
       arrayType: 'object'
-    }) as ValidationArrayResult
+    }) as ValidationArrayObjectResult
     expect(result.results.data.length).toBe(2)
     expect(result.results.pass).toBe(false)
     expect(result.pass).toBe(false)
@@ -536,14 +566,14 @@ describe('Validate object array', () => {
       schema: { foo: { type: 'string' }, bar: { type: 'number', isRequired: true } },
       type: 'array',
       arrayType: 'object'
-    }) as ValidationArrayResult
+    }) as ValidationArrayObjectResult
     expect(result.results.data.length).toBe(4)
     expect(result.results.missing.length).toBe(2)
     expect(result.results.pass).toBe(false)
     expect(result.pass).toBe(false)
   })
 
-  it('should return passing result when all required keys are included', () => {
+  it('should return passed result when all required keys are included', () => {
     const result = checkpoint([
       { foo: 'ABCD', bar: 123 },
       { bar: 456 },
@@ -553,7 +583,7 @@ describe('Validate object array', () => {
       schema: { foo: { type: 'string' }, bar: { type: 'number', isRequired: true } },
       type: 'array',
       arrayType: 'object'
-    }) as ValidationArrayResult
+    }) as ValidationArrayObjectResult
     expect(result.results.data.length).toBe(4)
     expect(result.results.missing.length).toBe(0)
     expect(result.results.pass).toBe(true)
@@ -571,13 +601,13 @@ describe('Validate object array', () => {
       options: { requireMode: 'atLeastOne' },
       type: 'array',
       arrayType: 'object'
-    }) as ValidationArrayResult
+    }) as ValidationArrayObjectResult
     expect(result.results.data.length).toBe(4)
     expect(result.results.pass).toBe(false)
     expect(result.pass).toBe(false)
   })
 
-  it('should return passing result when atLeastOne condition passes', () => {
+  it('should return passed result when atLeastOne condition passes', () => {
     const result = checkpoint([
       { foo: 'ABCD', bar: 123, baz: 'here' },
       { bar: 456, baz: 'here' },
@@ -588,7 +618,7 @@ describe('Validate object array', () => {
       options: { requireMode: 'atLeastOne' },
       type: 'array',
       arrayType: 'object'
-    }) as ValidationArrayResult
+    }) as ValidationArrayObjectResult
     expect(result.results.data.length).toBe(4)
     expect(result.results.pass).toBe(true)
     expect(result.pass).toBe(true)
