@@ -6,15 +6,16 @@ import {
   ResultValue,
   Rules,
   RulesArray,
-  RulesObject,
+  SchemaObject,
   SchemaObjectValidationResult,
-  SchemaValueValidationResult,
   SchemaValue,
+  SchemaValueValidationResult,
   TransformationOptions,
-  ValidationOptions,
   ValidationArrayResult,
   ValidationBaseResult,
-  ValidationObjectResult
+  ValidationObjectResult,
+  ValidationOptions,
+  ValidationPrimitiveResult
 } from './types'
 
 /**
@@ -65,6 +66,7 @@ export class Checkpoint {
   /* eslint-disable lines-between-class-members, no-dupe-class-members, @typescript-eslint/no-explicit-any */
   private createValidationResult(rules: Rules, type: 'array', arrayType: 'object' | 'primitive'): ValidationArrayResult
   private createValidationResult(rules: Rules, type: 'object', arrayType?): ValidationObjectResult
+  private createValidationResult(rules: Rules, type: 'primitive', arrayType?): ValidationPrimitiveResult
   private createValidationResult(rules, type, arrayType?): any {
     /* eslint-enable @typescript-eslint/no-explicit-any */
     const validationBaseResult: ValidationBaseResult = {
@@ -145,6 +147,15 @@ export class Checkpoint {
       }
     }
 
+    if (type === 'primitive') {
+      const validationPrimitiveResult: ValidationPrimitiveResult = {
+        ...validationBaseResult,
+        data: this.data,
+        results: { data: { pass: true, reasons: [] } }
+      }
+      return validationPrimitiveResult
+    }
+
     if (type === 'object') {
       const validationObjectResult: ValidationObjectResult = {
         ...validationBaseResult,
@@ -181,14 +192,30 @@ export class Checkpoint {
    * @param Rules Rules that data is validated with
    * @returns Validation result
    */
-  public validate(rules: Rules): ValidationArrayResult | ValidationObjectResult {
+  public validate(rules: Rules): ValidationArrayResult | ValidationObjectResult | ValidationPrimitiveResult {
     let validationResult
     const { schema, options, type } = rules
+
+    if (type === 'primitive') {
+      const schemaValueValidationResult = Checkpoint.validateSchemaValue(
+        this.data,
+        schema as SchemaValue,
+        options,
+        'Value'
+      )
+      const { result } = schemaValueValidationResult
+
+      validationResult = this.createValidationResult(rules, 'primitive') as ValidationPrimitiveResult
+      validationResult.results.data = result
+      validationResult.pass = result.pass
+
+      return validationResult
+    }
 
     if (type === 'object') {
       const schemaObjectValidationResult = Checkpoint.validateSchemaObject(
         this.data,
-        schema as RulesObject['schema'],
+        schema as SchemaObject,
         options,
         'object'
       )
@@ -213,7 +240,7 @@ export class Checkpoint {
           const currData = this.data[i]
           const schemaObjectValidationResult = Checkpoint.validateSchemaObject(
             currData,
-            schema as RulesObject['schema'],
+            schema as SchemaObject,
             options,
             'object'
           )
@@ -254,7 +281,7 @@ export class Checkpoint {
    */
   private static validateSchemaObject(
     data: object,
-    schema: RulesObject['schema'],
+    schema: SchemaObject,
     options: ValidationOptions = {},
     errType?: 'object' | 'primitive'
   ): SchemaObjectValidationResult {
@@ -281,13 +308,17 @@ export class Checkpoint {
       )
       const { atLeastOne: iterAtLeastOne, exitASAPTriggered, missing, result } = schemaValueValidationResult
 
-      returnData.missing = missing
       returnData.result[currKey] = result
       if (!result.pass) returnData.pass = false
+
+      if (missing) {
+        returnData.missing.push(missing)
+      }
 
       if (requireMode === 'atLeastOne' && !returnData.atLeastOne && iterAtLeastOne) {
         returnData.atLeastOne = iterAtLeastOne
       }
+
       if (exitASAPTriggered) {
         returnData.exitASAPTriggered = true
         return returnData
@@ -319,7 +350,7 @@ export class Checkpoint {
   ): SchemaValueValidationResult {
     const { allowNull, isRequired, stringValidation, type } = schema
     const returnData: SchemaValueValidationResult = {
-      missing: [],
+      missing: null,
       result: { pass: true, reasons: [] }
     }
 
@@ -333,7 +364,7 @@ export class Checkpoint {
     } else if ((isRequired || requireMode === 'all') && value === undefined) {
       // Missing required property
       returnData.result = Checkpoint.createResultValue(returnData.result, false, ERRS[0](txt, errType))
-      if (txt) returnData.missing.push(String(txt))
+      if (txt) returnData.missing = txt
       if (exitASAP) {
         returnData.exitASAPTriggered = true
         return returnData

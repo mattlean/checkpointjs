@@ -5,22 +5,24 @@ interface ResultObject {
 }
 
 interface ResultsArrayData extends ResultsBaseData {
-  data: ResultsObjectData[] | ResultsValueData[]
-  missing: number[]
+  data: ResultsArrayPrimitiveData[] | ResultsObjectData[]
+}
+
+interface ResultsArrayPrimitiveData extends ResultsBaseData {
+  data: ResultValue
 }
 
 interface ResultsBaseData {
   pass: boolean
+  missing: string[]
 }
 
 interface ResultsObjectData extends ResultsBaseData {
   data: ResultObject
-  missing: string[]
 }
 
-interface ResultsValueData extends ResultsBaseData {
+interface ResultsPrimitiveData {
   data: ResultValue
-  missing: string[]
 }
 
 export interface ResultValue {
@@ -40,7 +42,7 @@ interface RulesBase {
   options?: ValidationOptions
 }
 
-export interface RulesObject extends RulesBase {
+interface RulesObject extends RulesBase {
   schema: SchemaObject
   type: 'object'
 }
@@ -52,7 +54,7 @@ interface RulesPrimitive extends RulesBase {
 
 type Schemas = SchemaObject | SchemaValue
 
-interface SchemaObject {
+export interface SchemaObject {
   [key: string]: SchemaValue
 }
 
@@ -74,7 +76,7 @@ export interface SchemaValue {
 export interface SchemaValueValidationResult {
   atLeastOne?: boolean
   exitASAPTriggered?: boolean
-  missing: string[]
+  missing: string | null
   result: ResultValue
 }
 
@@ -88,11 +90,6 @@ interface StringValidation {
 }
 
 export interface TransformationOptions {} // eslint-disable-line @typescript-eslint/no-empty-interface
-
-export interface ValidationOptions {
-  exitASAP?: boolean
-  requireMode?: RequireMode
-}
 
 export interface ValidationArrayResult extends ValidationBaseResult {
   data: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -109,4 +106,14 @@ export interface ValidationBaseResult {
 export interface ValidationObjectResult extends ValidationBaseResult {
   data: object
   results: ResultsObjectData
+}
+
+export interface ValidationOptions {
+  exitASAP?: boolean
+  requireMode?: RequireMode
+}
+
+export interface ValidationPrimitiveResult extends ValidationBaseResult {
+  data: any // eslint-disable-line @typescript-eslint/no-explicit-any
+  results: ResultsPrimitiveData
 }

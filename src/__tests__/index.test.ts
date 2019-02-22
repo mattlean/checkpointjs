@@ -1,8 +1,59 @@
 import checkpoint, { Checkpoint } from '..'
 import ERRS from '../errs'
-import { ValidationObjectResult } from '../types'
+import { ValidationArrayResult, ValidationObjectResult, ValidationPrimitiveResult } from '../types'
 
-// TODO: separate tests into groups
+describe('Validate primitive', () => {
+  it('should return passing result when passing null check', () => {
+    const result = checkpoint(null).validate({
+      schema: { allowNull: true },
+      type: 'primitive'
+    }) as ValidationPrimitiveResult
+    expect(result.pass).toBe(true)
+  })
+
+  it('should return failing result when failing null check', () => {
+    const result = checkpoint(null).validate({
+      schema: {},
+      type: 'primitive'
+    }) as ValidationPrimitiveResult
+    expect(result.pass).toBe(false)
+    expect(result.results.data.reasons[0]).toBe(ERRS[2]('Value'))
+  })
+
+  it('should return passing result when passing required check', () => {
+    const result = checkpoint('heya').validate({
+      schema: { isRequired: true },
+      type: 'primitive'
+    }) as ValidationPrimitiveResult
+    expect(result.pass).toBe(true)
+  })
+
+  it('should return failing result when failing required check', () => {
+    const result = checkpoint(undefined).validate({
+      schema: { isRequired: true },
+      type: 'primitive'
+    }) as ValidationPrimitiveResult
+    expect(result.pass).toBe(false)
+    expect(result.results.data.reasons[0]).toBe(ERRS[0]('Value'))
+  })
+
+  it('should return passing when passing type check', () => {
+    const result = checkpoint(123).validate({
+      schema: { type: 'number' },
+      type: 'primitive'
+    })
+    expect(result.pass).toBe(true)
+  })
+
+  it('should return failing result when failing type check', () => {
+    const result = checkpoint(123).validate({
+      schema: { type: 'string' },
+      type: 'primitive'
+    }) as ValidationPrimitiveResult
+    expect(result.pass).toBe(false)
+    expect(result.results.data.reasons[0]).toBe(ERRS[1]('Value', 'string', 'number'))
+  })
+})
 
 describe('Validate object', () => {
   it('should create a checkpoint', () => {
@@ -16,19 +67,23 @@ describe('Validate object', () => {
 
   it('should return failing result due to missing required data property', () => {
     const result = checkpoint({ bar: 123 }).validate({
-      schema: { foo: { isRequired: true } },
+      schema: { foo: { isRequired: true }, baz: { isRequired: true } },
       type: 'object'
-    })
+    }) as ValidationObjectResult
     expect(result.data['foo']).toBe(undefined)
     expect(result.results.data['foo'].pass).toBe(false)
     expect(result.results.data['foo'].reasons[0]).toBe(ERRS[0]('foo', 'object'))
-    expect(result.results.missing.length).toBe(1)
+    expect(result.results.data['baz'].reasons[0]).toBe(ERRS[0]('baz', 'object'))
+    expect(result.results.missing.length).toBe(2)
     expect(result.results.missing[0]).toBe('foo')
     expect(result.pass).toBe(false)
   })
 
   it('should return passing result for having required data property', () => {
-    const result = checkpoint({ bar: 123 }).validate({ schema: { bar: { isRequired: true } }, type: 'object' })
+    const result = checkpoint({ bar: 123 }).validate({
+      schema: { bar: { isRequired: true } },
+      type: 'object'
+    }) as ValidationObjectResult
     expect(result.data['bar']).toBe(123)
     expect(result.results.data['bar'].pass).toBe(true)
     expect(result.results.data['bar'].reasons.length).toBe(0)
@@ -141,7 +196,7 @@ describe('Validate object', () => {
     const result = checkpoint({ foo: null }).validate({
       schema: { foo: { allowNull: false, type: 'string' }, bar: { isRequired: true } },
       type: 'object'
-    })
+    }) as ValidationObjectResult
     expect(result.data['foo']).toBe(null)
     expect(result.results.data['foo'].pass).toBe(false)
     expect(result.results.data['foo'].reasons.length).toBe(2)
@@ -172,7 +227,7 @@ describe('Validate object', () => {
       schema: { foo: { allowNull: true, type: 'string' }, bar: { type: 'string' }, baz: {} },
       options: { requireMode: 'all' },
       type: 'object'
-    })
+    }) as ValidationObjectResult
     expect(result.results.data['foo'].pass).toBe(true)
     expect(result.results.data['bar'].pass).toBe(true)
     expect(result.results.data['baz'].pass).toBe(false)
@@ -188,7 +243,7 @@ describe('Validate object', () => {
       schema: { foo: { allowNull: true, type: 'string' }, bar: { type: 'string' }, baz: {} },
       options: { requireMode: 'all' },
       type: 'object'
-    })
+    }) as ValidationObjectResult
     expect(result.results.data['foo'].pass).toBe(true)
     expect(result.results.data['bar'].pass).toBe(true)
     expect(result.results.data['baz'].pass).toBe(true)
@@ -329,7 +384,7 @@ describe('Validate array', () => {
       schema: { foo: { type: 'string' } },
       type: 'array',
       arrayType: 'object'
-    })
+    }) as ValidationArrayResult
     expect(result.results.data.length).toBe(2)
     expect(result.results.pass).toBe(true)
     expect(result.pass).toBe(true)
@@ -340,7 +395,7 @@ describe('Validate array', () => {
       schema: { foo: { type: 'string' } },
       type: 'array',
       arrayType: 'object'
-    })
+    }) as ValidationArrayResult
     expect(result.results.data.length).toBe(2)
     expect(result.results.pass).toBe(false)
     expect(result.pass).toBe(false)
@@ -352,7 +407,7 @@ describe('Validate array', () => {
       options: { exitASAP: true },
       type: 'array',
       arrayType: 'object'
-    })
+    }) as ValidationArrayResult
     expect(result.results.data.length).toBe(2)
     expect(result.results.pass).toBe(false)
     expect(result.pass).toBe(false)
@@ -363,7 +418,7 @@ describe('Validate array', () => {
       schema: { foo: { type: 'string' }, bar: { type: 'number', isRequired: true } },
       type: 'array',
       arrayType: 'object'
-    })
+    }) as ValidationArrayResult
     expect(result.results.data.length).toBe(4)
     expect(result.results.missing.length).toBe(2)
     expect(result.results.pass).toBe(false)
@@ -380,7 +435,7 @@ describe('Validate array', () => {
       schema: { foo: { type: 'string' }, bar: { type: 'number', isRequired: true } },
       type: 'array',
       arrayType: 'object'
-    })
+    }) as ValidationArrayResult
     expect(result.results.data.length).toBe(4)
     expect(result.results.missing.length).toBe(0)
     expect(result.results.pass).toBe(true)
@@ -398,7 +453,7 @@ describe('Validate array', () => {
       options: { requireMode: 'atLeastOne' },
       type: 'array',
       arrayType: 'object'
-    })
+    }) as ValidationArrayResult
     expect(result.results.data.length).toBe(4)
     expect(result.results.pass).toBe(false)
     expect(result.pass).toBe(false)
@@ -415,7 +470,7 @@ describe('Validate array', () => {
       options: { requireMode: 'atLeastOne' },
       type: 'array',
       arrayType: 'object'
-    })
+    }) as ValidationArrayResult
     expect(result.results.data.length).toBe(4)
     expect(result.results.pass).toBe(true)
     expect(result.pass).toBe(true)
