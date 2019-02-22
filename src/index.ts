@@ -62,39 +62,82 @@ export class Checkpoint {
    * @param type Type of data to be validated
    */
   /* eslint-disable lines-between-class-members, no-dupe-class-members, @typescript-eslint/no-explicit-any */
-  private createValidationResult(rules: Rules, type: 'array'): ValidationArrayResult
-  private createValidationResult(rules: Rules, type: 'object'): ValidationObjectResult
-  private createValidationResult(rules, type): any {
+  private createValidationResult(rules: Rules, type: 'array', arrayType: 'object' | 'primitive'): ValidationArrayResult
+  private createValidationResult(rules: Rules, type: 'object', arrayType?): ValidationObjectResult
+  private createValidationResult(rules, type, arrayType?): any {
     /* eslint-enable @typescript-eslint/no-explicit-any */
     const validationBaseResult: ValidationBaseResult = {
       pass: true,
       rules,
-      // TODO: handle array type in show results methods
       showFailedResults() {
-        const resultsDataKeys = Object.keys(this.results.data)
         const failedResults = []
 
-        resultsDataKeys.forEach(key => {
-          const currResult = this.results.data[key]
-          if (!currResult.pass) {
-            failedResults.push(...this.results.data[key].reasons)
-          }
-        })
+        if (type === 'object') {
+          const resultsDataKeys = Object.keys(this.results.data)
 
-        return failedResults
+          resultsDataKeys.forEach(key => {
+            const currResult = this.results.data[key]
+            if (!currResult.pass) {
+              failedResults.push(...this.results.data[key].reasons)
+            }
+          })
+
+          return failedResults
+        }
+
+        if (type === 'array') {
+          if (arrayType === 'object') {
+            this.results.data.forEach(obj => {
+              const resultsDataKeys = Object.keys(obj)
+
+              resultsDataKeys.forEach(key => {
+                const currResult = obj[key]
+                if (!currResult.pass) {
+                  failedResults.push(...obj[key].reasons)
+                }
+              })
+            })
+
+            return failedResults
+          }
+        }
+
+        throw new Error('Invalid type provided')
       },
       showPassedResults() {
-        const resultsDataKeys = Object.keys(this.results.data)
         const passedResults = []
 
-        resultsDataKeys.forEach(key => {
-          const currResult = this.results.data[key]
-          if (currResult.pass) {
-            passedResults.push(key)
-          }
-        })
+        if (type === 'object') {
+          const resultsDataKeys = Object.keys(this.results.data)
 
-        return passedResults
+          resultsDataKeys.forEach(key => {
+            const currResult = this.results.data[key]
+            if (currResult.pass) {
+              passedResults.push(key)
+            }
+          })
+
+          return passedResults
+        }
+
+        if (type === 'array') {
+          if (arrayType === 'object') {
+            this.results.data.forEach(obj => {
+              const resultsDataKeys = Object.keys(obj)
+
+              resultsDataKeys.forEach(key => {
+                const currResult = obj[key]
+                if (currResult.pass) {
+                  passedResults.push(...obj[key].reasons)
+                }
+              })
+            })
+
+            return passedResults
+          }
+        }
+
+        throw new Error('Invalid type provided')
       }
     }
 
@@ -156,10 +199,11 @@ export class Checkpoint {
     }
 
     if (type === 'array') {
-      validationResult = this.createValidationResult(rules, 'array') as ValidationArrayResult
       const { arrayType } = rules as RulesArray
 
       if (arrayType === 'object') {
+        validationResult = this.createValidationResult(rules, 'array', 'object') as ValidationArrayResult
+
         for (let i = 0; i < this.data.length; i += 1) {
           const currData = this.data[i]
           const schemaObjectValidationResult = Checkpoint.validateSchemaObject(
@@ -192,7 +236,7 @@ export class Checkpoint {
       return validationResult
     }
 
-    throw new Error('Invalid type')
+    throw new Error('Invalid type provided')
   }
 
   /**

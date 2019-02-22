@@ -420,4 +420,22 @@ describe('Validate array', () => {
     expect(result.results.pass).toBe(true)
     expect(result.pass).toBe(true)
   })
+
+  it('should return failed results with showFailedResults()', () => {
+    const results = checkpoint([
+      { foo: 'ABCD', bar: 123 },
+      { bar: 456 },
+      { foo: 'EFG' },
+      { foo: 'HIJK', bar: 'bleh' }
+    ]).validate({
+      schema: { foo: { type: 'string' }, bar: { type: 'number', isRequired: true } },
+      type: 'array',
+      arrayType: 'object'
+    })
+    const failedResults = results.showFailedResults()
+    expect(Array.isArray(failedResults)).toBe(true)
+    expect(failedResults.length).toBe(2)
+    expect(failedResults[0]).toBe(ERRS[1]('bar'))
+    expect(failedResults[1]).toBe(ERRS[2]('bar', 'number', 'string'))
+  })
 })
