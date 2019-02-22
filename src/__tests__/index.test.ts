@@ -3,6 +3,7 @@ import ERRS from '../errs'
 import { ValidationArrayResult, ValidationObjectResult, ValidationPrimitiveResult } from '../types'
 
 describe('Validate primitive', () => {
+  // TODO: test stringValidation
   it('should return passing result when passing null check', () => {
     const result = checkpoint(null).validate({
       schema: { allowNull: true },
@@ -378,7 +379,132 @@ describe('Validate object', () => {
   })
 })
 
-describe('Validate array', () => {
+describe('Validate primitive array', () => {
+  // TODO: test stringValidation
+  // TODO: test requireMode all
+  it('should return basic passing result', () => {
+    const result = checkpoint(['ABCD', 'EFG']).validate({
+      schema: { type: 'string' },
+      type: 'array',
+      arrayType: 'primitive'
+    }) as ValidationArrayResult
+    expect(result.results.data.length).toBe(2)
+    expect(result.results.pass).toBe(true)
+    expect(result.pass).toBe(true)
+  })
+
+  it('should return basic failing result', () => {
+    const result = checkpoint(['ABCD', 123]).validate({
+      schema: { type: 'string' },
+      type: 'array',
+      arrayType: 'primitive'
+    }) as ValidationArrayResult
+    expect(result.results.data.length).toBe(2)
+    expect(result.results.pass).toBe(false)
+    expect(result.pass).toBe(false)
+  })
+
+  it('should return one failing result when exitASAP option is enabled', () => {
+    const result = checkpoint(['ABCD', 123, 'EFG']).validate({
+      schema: { type: 'string' },
+      options: { exitASAP: true },
+      type: 'array',
+      arrayType: 'primitive'
+    }) as ValidationArrayResult
+    expect(result.results.data.length).toBe(2)
+    expect(result.results.pass).toBe(false)
+    expect(result.pass).toBe(false)
+  })
+
+  it('should return failing result with missing indexes that have missing values', () => {
+    const result = checkpoint(['ABCD', undefined, undefined, 'EFG', 'HIJK']).validate({
+      schema: { type: 'string', isRequired: true },
+      type: 'array',
+      arrayType: 'primitive'
+    }) as ValidationArrayResult
+    expect(result.results.data.length).toBe(5)
+    expect(result.results.missing.length).toBe(2)
+    expect(result.results.pass).toBe(false)
+    expect(result.pass).toBe(false)
+  })
+
+  it('should return passing result when all required values are included', () => {
+    const result = checkpoint(['ABCD', 'imastring', 'imastring2', 'EFG', 'HIJK']).validate({
+      schema: { type: 'string', isRequired: true },
+      type: 'array',
+      arrayType: 'primitive'
+    }) as ValidationArrayResult
+    expect(result.results.data.length).toBe(5)
+    expect(result.results.missing.length).toBe(0)
+    expect(result.results.pass).toBe(true)
+    expect(result.pass).toBe(true)
+  })
+
+  it('should return failing result when atLeastOne condition fails', () => {
+    const result = checkpoint([undefined, undefined, undefined]).validate({
+      schema: { type: 'string' },
+      options: { requireMode: 'atLeastOne' },
+      type: 'array',
+      arrayType: 'primitive'
+    }) as ValidationArrayResult
+    expect(result.results.data.length).toBe(4)
+    expect(result.results.pass).toBe(false)
+    expect(result.pass).toBe(false)
+  })
+
+  it('should return passing result when atLeastOne condition passes', () => {
+    const result = checkpoint([undefined, 'here', undefined]).validate({
+      schema: { type: 'string' },
+      options: { requireMode: 'atLeastOne' },
+      type: 'array',
+      arrayType: 'primitive'
+    }) as ValidationArrayResult
+    expect(result.results.data.length).toBe(3)
+    expect(result.results.pass).toBe(true)
+    expect(result.pass).toBe(true)
+  })
+
+  // it('should return failed results with showFailedResults()', () => {
+  //   const failedResults = checkpoint(['ABCD', 123, 456, 'EFG', 'HIJK', 'bleh'])
+  //     .validate({
+  //       schema: { type: 'string' },
+  //       type: 'array',
+  //       arrayType: 'primitive'
+  //     })
+  //     .showFailedResults()
+  //   console.log(JSON.stringify(failedResults))
+  //   expect(Array.isArray(failedResults)).toBe(true)
+  //   expect(failedResults.length).toBe(2)
+  //   expect(failedResults[0]).toBe(`[2]: ${ERRS[0]('bar')}`)
+  //   expect(failedResults[1]).toBe(`[3]: ${ERRS[1]('bar', 'number', 'string')}`)
+  // })
+
+  // it('should return passed results with showPassedResults()', () => {
+  //   const passedResults = checkpoint([
+  //     { foo: 'ABCD', bar: 123 },
+  //     { bar: 456 },
+  //     { foo: 'EFG' },
+  //     { foo: 'HIJK', bar: 'bleh' }
+  //   ])
+  //     .validate({
+  //       schema: { foo: { type: 'string' }, bar: { type: 'number', isRequired: true } },
+  //       type: 'array',
+  //       arrayType: 'primitive'
+  //     })
+  //     .showPassedResults()
+  //   expect(Array.isArray(passedResults)).toBe(true)
+  //   expect(passedResults.length).toBe(6)
+  //   expect(passedResults[0]).toBe('[0]: foo')
+  //   expect(passedResults[1]).toBe('[0]: bar')
+  //   expect(passedResults[2]).toBe('[1]: foo')
+  //   expect(passedResults[3]).toBe('[1]: bar')
+  //   expect(passedResults[4]).toBe('[2]: foo')
+  //   expect(passedResults[5]).toBe('[3]: foo')
+  // })
+})
+
+describe('Validate object array', () => {
+  // TODO: test stringValidation
   it('should return basic passing result', () => {
     const result = checkpoint([{ foo: 'ABCD' }, { foo: 'EFG' }]).validate({
       schema: { foo: { type: 'string' } },

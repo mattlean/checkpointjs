@@ -195,14 +195,10 @@ export class Checkpoint {
   public validate(rules: Rules): ValidationArrayResult | ValidationObjectResult | ValidationPrimitiveResult {
     let validationResult
     const { schema, options, type } = rules
+    const o = options || {}
 
     if (type === 'primitive') {
-      const schemaValueValidationResult = Checkpoint.validateSchemaValue(
-        this.data,
-        schema as SchemaValue,
-        options,
-        'Value'
-      )
+      const schemaValueValidationResult = Checkpoint.validateSchemaValue(this.data, schema as SchemaValue, o, 'Value')
       const { result } = schemaValueValidationResult
 
       validationResult = this.createValidationResult(rules, 'primitive') as ValidationPrimitiveResult
@@ -216,14 +212,14 @@ export class Checkpoint {
       const schemaObjectValidationResult = Checkpoint.validateSchemaObject(
         this.data,
         schema as SchemaObject,
-        options,
+        o,
         'object'
       )
-      const { missing, pass } = schemaObjectValidationResult
+      const { missing, pass, result } = schemaObjectValidationResult
 
       validationResult = this.createValidationResult(rules, 'object') as ValidationObjectResult
       validationResult.pass = pass
-      validationResult.results.data = schemaObjectValidationResult.result
+      validationResult.results.data = result
       validationResult.results.missing = missing
       validationResult.results.pass = pass
 
@@ -241,12 +237,12 @@ export class Checkpoint {
           const schemaObjectValidationResult = Checkpoint.validateSchemaObject(
             currData,
             schema as SchemaObject,
-            options,
+            o,
             'object'
           )
-          const { exitASAPTriggered, missing, pass } = schemaObjectValidationResult
+          const { exitASAPTriggered, missing, pass, result } = schemaObjectValidationResult
 
-          validationResult.results.data.push(schemaObjectValidationResult.result)
+          validationResult.results.data.push(result)
 
           if (missing.length > 0) {
             validationResult.results.missing.push(i)
@@ -264,7 +260,52 @@ export class Checkpoint {
 
           if (exitASAPTriggered) break
         }
-      } // TODO: arrayType === 'primitive'
+      } else if (arrayType === 'primitive') {
+        let atLeastOne = false
+        const { requireMode } = o
+
+        validationResult = this.createValidationResult(rules, 'array', 'primitive') as ValidationArrayResult
+
+        for (let i = 0; i < this.data.length; i += 1) {
+          const currData = this.data[i]
+          const schemaValueValidationResult = Checkpoint.validateSchemaValue(
+            currData,
+            schema as SchemaValue,
+            o,
+            'Value'
+          )
+          const { atLeastOne: iterAtLeastOne, exitASAPTriggered, missing, result } = schemaValueValidationResult
+          const { pass } = result
+
+          validationResult.results.data.push(result)
+
+          if (missing) {
+            validationResult.results.missing.push(i)
+          }
+
+          if (!pass) {
+            if (validationResult.pass) {
+              validationResult.pass = pass
+            }
+
+            if (validationResult.results.pass) {
+              validationResult.results.pass = pass
+            }
+          }
+
+          if (requireMode === 'atLeastOne' && !atLeastOne && iterAtLeastOne) {
+            atLeastOne = iterAtLeastOne
+          }
+
+          if (exitASAPTriggered) break
+        }
+
+        if (requireMode === 'atLeastOne' && !atLeastOne) {
+          validationResult.pass = false
+          validationResult.results.pass = false
+          validationResult.results.data.push(Checkpoint.createResultValue(null, false, ERRS[3]()))
+        }
+      }
 
       return validationResult
     }
