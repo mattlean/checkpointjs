@@ -464,43 +464,35 @@ describe('Validate primitive array', () => {
     expect(result.pass).toBe(true)
   })
 
-  // it('should return failed results with showFailedResults()', () => {
-  //   const failedResults = checkpoint(['ABCD', 123, 456, 'EFG', 'HIJK', 'bleh'])
-  //     .validate({
-  //       schema: { type: 'string' },
-  //       type: 'array',
-  //       arrayType: 'primitive'
-  //     })
-  //     .showFailedResults()
-  //   console.log(JSON.stringify(failedResults))
-  //   expect(Array.isArray(failedResults)).toBe(true)
-  //   expect(failedResults.length).toBe(2)
-  //   expect(failedResults[0]).toBe(`[2]: ${ERRS[0]('bar')}`)
-  //   expect(failedResults[1]).toBe(`[3]: ${ERRS[1]('bar', 'number', 'string')}`)
-  // })
+  it('should return failed results with showFailedResults()', () => {
+    const failedResults = checkpoint(['ABCD', 123, 456, 'EFG', 'HIJK', 'bleh'])
+      .validate({
+        schema: { type: 'string' },
+        type: 'array',
+        arrayType: 'primitive'
+      })
+      .showFailedResults()
+    expect(Array.isArray(failedResults)).toBe(true)
+    expect(failedResults.length).toBe(2)
+    expect(failedResults[0]).toBe(`[1]: ${ERRS[1]('Value', 'string', 'number')}`)
+    expect(failedResults[1]).toBe(`[2]: ${ERRS[1]('Value', 'string', 'number')}`)
+  })
 
-  // it('should return passed results with showPassedResults()', () => {
-  //   const passedResults = checkpoint([
-  //     { foo: 'ABCD', bar: 123 },
-  //     { bar: 456 },
-  //     { foo: 'EFG' },
-  //     { foo: 'HIJK', bar: 'bleh' }
-  //   ])
-  //     .validate({
-  //       schema: { foo: { type: 'string' }, bar: { type: 'number', isRequired: true } },
-  //       type: 'array',
-  //       arrayType: 'primitive'
-  //     })
-  //     .showPassedResults()
-  //   expect(Array.isArray(passedResults)).toBe(true)
-  //   expect(passedResults.length).toBe(6)
-  //   expect(passedResults[0]).toBe('[0]: foo')
-  //   expect(passedResults[1]).toBe('[0]: bar')
-  //   expect(passedResults[2]).toBe('[1]: foo')
-  //   expect(passedResults[3]).toBe('[1]: bar')
-  //   expect(passedResults[4]).toBe('[2]: foo')
-  //   expect(passedResults[5]).toBe('[3]: foo')
-  // })
+  it('should return passed results with showPassedResults()', () => {
+    const passedResults = checkpoint(['ABCD', 123, 456, 'EFG', 'HIJK', 'bleh'])
+      .validate({
+        schema: { type: 'string' },
+        type: 'array',
+        arrayType: 'primitive'
+      })
+      .showPassedResults()
+    expect(Array.isArray(passedResults)).toBe(true)
+    expect(passedResults.length).toBe(4)
+    expect(passedResults[0]).toBe(0)
+    expect(passedResults[1]).toBe(3)
+    expect(passedResults[2]).toBe(4)
+    expect(passedResults[3]).toBe(5)
+  })
 })
 
 describe('Validate object array', () => {

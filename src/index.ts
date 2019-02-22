@@ -94,18 +94,36 @@ export class Checkpoint {
               const resultsDataKeys = Object.keys(obj)
 
               resultsDataKeys.forEach(key => {
-                const currResult = obj[key]
+                const currResult = {
+                  pass: obj[key].pass,
+                  reasons: Array.from(obj[key].reasons)
+                }
                 if (!currResult.pass) {
                   currResult.reasons.forEach((reason, j) => {
                     currResult.reasons[j] = `[${i}]: ${reason}`
                   })
-                  failedResults.push(...obj[key].reasons)
+                  failedResults.push(...currResult.reasons)
                 }
               })
             })
-
-            return failedResults
           }
+
+          if (arrayType === 'primitive') {
+            this.results.data.forEach((result, i) => {
+              const currResult = {
+                pass: result.pass,
+                reasons: Array.from(result.reasons)
+              }
+              if (!currResult.pass) {
+                currResult.reasons.forEach((reason, j) => {
+                  currResult.reasons[j] = `[${i}]: ${reason}`
+                })
+                failedResults.push(...currResult.reasons)
+              }
+            })
+          }
+
+          return failedResults
         }
 
         throw new Error('Invalid type provided')
@@ -138,9 +156,17 @@ export class Checkpoint {
                 }
               })
             })
-
-            return passedResults
           }
+
+          if (arrayType === 'primitive') {
+            this.results.data.forEach((currResult, i) => {
+              if (currResult.pass) {
+                passedResults.push(i)
+              }
+            })
+          }
+
+          return passedResults
         }
 
         throw new Error('Invalid type provided')
