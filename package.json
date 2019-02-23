@@ -1,7 +1,7 @@
 {
   "name": "checkpointjs",
   "version": "0.0.1",
-  "description": "",
+  "description": "Validate and transform data",
   "main": "src/index.ts",
   "scripts": {
     "build": "tsc",
@@ -16,6 +16,18 @@
     "type": "git",
     "url": "git+https://github.com/IsaacLean/checkpointjs.git"
   },
+  "keywords": [
+    "checkpointjs",
+    "checkpoint",
+    "checkpoint.js",
+    "data",
+    "validate",
+    "validation",
+    "transform",
+    "transformation",
+    "sanitize",
+    "sanitization"
+  ],
   "author": "Matthew Lean",
   "license": "MIT",
   "bugs": {
