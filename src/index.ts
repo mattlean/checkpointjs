@@ -179,6 +179,7 @@ export class Checkpoint {
     }
 
     if (type === 'primitive') {
+      // TODO: Check type of data
       const validationPrimitiveResult: ValidationPrimitiveResult = {
         ...validationBaseResult,
         data: this.data,
@@ -188,6 +189,7 @@ export class Checkpoint {
     }
 
     if (type === 'object') {
+      // TODO: Check type of data
       const validationObjectResult: ValidationObjectResult = {
         ...validationBaseResult,
         data: this.data,
@@ -197,6 +199,7 @@ export class Checkpoint {
     }
 
     if (type === 'array') {
+      // TODO: Check type of data
       const validationArrayResult: ValidationArrayResult = {
         ...validationBaseResult,
         data: this.data,
@@ -205,7 +208,7 @@ export class Checkpoint {
       return validationArrayResult
     }
 
-    throw new Error('Invalid type provided')
+    throw new Error('Invalid type provided') // TODO: Implement CustomErr
   }
   /* eslint-enable lines-between-class-members, no-dupe-class-members */
 

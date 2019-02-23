@@ -42,6 +42,7 @@ interface RulesBase {
   options?: ValidationOptions
 }
 
+// TODO: Make schema optional
 interface RulesObject extends RulesBase {
   schema: SchemaObject
   type: 'object'
