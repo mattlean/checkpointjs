@@ -1,5 +1,5 @@
 # Checkpoint.js
-Validate and transform data
+Validate and transform data.
 
 ## Setup
 ### Download
@@ -26,3 +26,4 @@ import checkpoint from 'checkpointjs'
 ```
 
 ## Examples
+*TODO*

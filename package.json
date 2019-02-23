@@ -1,6 +1,6 @@
 {
   "name": "checkpointjs",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Validate and transform data",
   "main": "src/index.ts",
   "scripts": {
@@ -34,7 +34,7 @@
     "url": "https://github.com/IsaacLean/checkpointjs/issues"
   },
   "homepage": "https://github.com/IsaacLean/checkpointjs#readme",
-  "dependencies": {
+  "peerDependencies": {
     "lodash": "^4.17.11",
     "validator": "^10.11.0"
   },
