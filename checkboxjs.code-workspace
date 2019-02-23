@@ -11,8 +11,8 @@
 		"eslint.validate": ["javascript", "typescript"],
 		"files.trimTrailingWhitespace": true,
 		"search.exclude": {
-			"build/": true,
 			"coverage/": true,
+			"dist/": true,
 			".eslintcache": true,
 			"yarn.lock": true
 		}

@@ -1,9 +1,9 @@
 {
     "compilerOptions": {
-        "allowJs": true,
+        "declaration": true,
         "esModuleInterop": true,
         "lib": ["es2015"],
-        "outDir": "build",
+        "outDir": "dist",
         "sourceMap": true,
         "target": "es5"
     },

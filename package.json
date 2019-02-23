@@ -1,12 +1,18 @@
 {
   "name": "checkpointjs",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Validate and transform data",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
   "scripts": {
     "build": "tsc",
     "format": "prettier --write --parser=typescript --print-width=120 --semi=false --single-quote \"src/**/*.{js,ts}\"",
     "lint": "eslint --cache \"src/**/*.{js,ts}\"",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run lint && npm t",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:update": "jest -u",
@@ -34,6 +40,10 @@
     "url": "https://github.com/IsaacLean/checkpointjs/issues"
   },
   "homepage": "https://github.com/IsaacLean/checkpointjs#readme",
+  "dependencies": {
+    "lodash": "^4.17.11",
+    "validator": "^10.11.0"
+  },
   "peerDependencies": {
     "lodash": "^4.17.11",
     "validator": "^10.11.0"

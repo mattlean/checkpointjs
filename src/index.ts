@@ -1,5 +1,7 @@
+/* eslint-disable import/no-extraneous-dependencies, import/no-unresolved */
 import { cloneDeep } from 'lodash'
 import { isIn as validatorIsIn, toDate } from 'validator'
+/* eslint-enable import/no-extraneous-dependencies, import/no-unresolved */
 
 import ERRS from './errs'
 import {
