@@ -33,7 +33,7 @@ export interface ResultValue {
 export type Rules = RulesArray | RulesObject | RulesPrimitive
 
 export interface RulesArray extends RulesBase {
-  schema: Schemas
+  schema?: Schemas
   type: 'array'
   arrayType: 'object' | 'primitive'
 }
@@ -42,14 +42,13 @@ interface RulesBase {
   options?: ValidationOptions
 }
 
-// TODO: Make schema optional
 interface RulesObject extends RulesBase {
-  schema: SchemaObject
+  schema?: SchemaObject
   type: 'object'
 }
 
 interface RulesPrimitive extends RulesBase {
-  schema: SchemaValue
+  schema?: SchemaValue
   type: 'primitive'
 }
 

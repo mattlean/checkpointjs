@@ -68,10 +68,10 @@ export class Checkpoint {
    * @param arrayType (Conditionally required) Type of array
    */
   /* eslint-disable lines-between-class-members, no-dupe-class-members, @typescript-eslint/no-explicit-any */
+  private createValidationResult(rules: Rules, type: 'primitive', arrayType?): ValidationPrimitiveResult
+  private createValidationResult(rules: Rules, type: 'object', arrayType?): ValidationObjectResult
   private createValidationResult(rules: Rules, type: 'array', arrayType: 'primitive'): ValidationArrayPrimitiveResult
   private createValidationResult(rules: Rules, type: 'array', arrayType: 'object'): ValidationArrayObjectResult
-  private createValidationResult(rules: Rules, type: 'object', arrayType?): ValidationObjectResult
-  private createValidationResult(rules: Rules, type: 'primitive', arrayType?): ValidationPrimitiveResult
   private createValidationResult(rules, type, arrayType?): any {
     /* eslint-enable @typescript-eslint/no-explicit-any */
     const validationBaseResult: ValidationBaseResult = {
@@ -79,6 +79,13 @@ export class Checkpoint {
       rules,
       showFailedResults() {
         const failedResults = []
+
+        if (type === 'primitive') {
+          if (!this.results.data.pass) {
+            failedResults.push(...this.results.data.reasons)
+          }
+          return failedResults
+        }
 
         if (type === 'object') {
           const resultsDataKeys = Object.keys(this.results.data)
@@ -136,6 +143,13 @@ export class Checkpoint {
       showPassedResults() {
         const passedResults = []
 
+        if (type === 'primitive') {
+          if (this.results.data.pass) {
+            passedResults.push(String(this.data))
+          }
+          return passedResults
+        }
+
         if (type === 'object') {
           const resultsDataKeys = Object.keys(this.results.data)
 
@@ -179,7 +193,10 @@ export class Checkpoint {
     }
 
     if (type === 'primitive') {
-      // TODO: Check type of data
+      if (this.data !== null && typeof this.data === 'object') {
+        throw new Error('Data is not a primitive type')
+      }
+
       const validationPrimitiveResult: ValidationPrimitiveResult = {
         ...validationBaseResult,
         data: this.data,
@@ -189,7 +206,10 @@ export class Checkpoint {
     }
 
     if (type === 'object') {
-      // TODO: Check type of data
+      if (typeof this.data !== 'object' || Array.isArray(this.data)) {
+        throw new Error('Data is not an object')
+      }
+
       const validationObjectResult: ValidationObjectResult = {
         ...validationBaseResult,
         data: this.data,
@@ -199,7 +219,20 @@ export class Checkpoint {
     }
 
     if (type === 'array') {
-      // TODO: Check type of data
+      if (!Array.isArray(this.data)) {
+        throw new Error('Data is not an array')
+      }
+
+      if (this.data.length > 0) {
+        if (arrayType === 'primitive' && typeof this.data[0] === 'object') {
+          throw new Error('Data is not an array of primitive types')
+        }
+
+        if (arrayType === 'object' && (typeof this.data[0] !== 'object' || Array.isArray(this.data[0]))) {
+          throw new Error('Data is not an array of objects')
+        }
+      }
+
       const validationArrayResult: ValidationArrayResult = {
         ...validationBaseResult,
         data: this.data,
@@ -350,13 +383,13 @@ export class Checkpoint {
   /**
    * Validate schema object
    * @param data Object data to be validated
-   * @param schema Schema to validate object data against
+   * @param schema (Optional) Schema to validate object data against
    * @param options (Optional) Options to influence validation process
    * @param errType (Optional) Determine formatting of error text
    */
   private static validateSchemaObject(
     data: object,
-    schema: SchemaObject,
+    schema: SchemaObject = {},
     options: ValidationOptions = {},
     errType?: 'object' | 'primitive'
   ): SchemaObjectValidationResult {
@@ -411,14 +444,14 @@ export class Checkpoint {
   /**
    * Validate schema value
    * @param value Value to be validated
-   * @param schema Schema to validate value against
+   * @param schema (Optional) Schema to validate value against
    * @param options (Optional) Options to influence validation process
    * @param txt (Optional) Object key, array index, or text associated with value
    * @param errType (Optional) Determine formatting of error text
    */
   private static validateSchemaValue(
     value: any, // eslint-disable-line @typescript-eslint/no-explicit-any
-    schema: SchemaValue,
+    schema: SchemaValue = {},
     options: ValidationOptions = {},
     txt?: string,
     errType?: 'object' | 'primitive'

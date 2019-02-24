@@ -3,27 +3,20 @@ Validate and transform data.
 
 ## Setup
 ### Download
-If you have [npm](https://npmjs.com), you can download with this command:
-`npm install checkpointjs`
+Install the [`checkpointjs` package](https://npmjs.com/package/checkpointjs) with a package manager like npm or Yarn.
 
-If you have [Yarn](https://yarnpkg.com), you can download with this command:
-`yarn install checkpointjs`
-
-You can also download and extract a release from here: https://github.com/IsaacLean/checkpointjs/releases
+You can also download and extract a release from here from the [Checkpoint.js GitHub repository releases page](https://github.com/IsaacLean/checkpointjs/releases).
 
 ### Loading the Library
-#### JavaScript ES2015 Module Import
-Import the library in your code with
+Import the library in your code as an ES2015 Module:
 ```javascript
 import checkpoint from 'checkpointjs'
 ```
 
-#### Node.js Module Import
-
-#### HTML Script Element
-```html
-<script type="text/javascript" src="checkpoint.js"></script>
-```
+*Note: This library supports TypeScript! The source is completely written in it and declaration files are included in the build which can be found in the `dist/` folder.*
 
 ## Examples
 *TODO*
+
+## License
+This open source project is licensed under the [MIT License](https://github.com/IsaacLean/checkpointjs/blob/master/LICENSE).
