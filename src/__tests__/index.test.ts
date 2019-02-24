@@ -7,9 +7,31 @@ import {
   ValidationPrimitiveResult
 } from '../types'
 
-// TODO: add data type tests
 describe('Validate primitive', () => {
   // TODO: test stringValidation
+  it('should throw error when type is primitive but data is object', () => {
+    expect(() => {
+      checkpoint({}).validate({
+        type: 'primitive'
+      })
+    }).toThrow()
+  })
+
+  it('should throw error when type is primitive but data is array', () => {
+    expect(() => {
+      checkpoint([]).validate({
+        type: 'primitive'
+      })
+    }).toThrow()
+  })
+
+  it('should return passed result when passing undefined without isRequired enabled', () => {
+    const result = checkpoint(undefined).validate({
+      type: 'primitive'
+    }) as ValidationPrimitiveResult
+    expect(result.pass).toBe(true)
+  })
+
   it('should return passed result when passing null check', () => {
     const result = checkpoint(null).validate({
       schema: { allowNull: true },
@@ -20,7 +42,6 @@ describe('Validate primitive', () => {
 
   it('should return failed result when failing null check', () => {
     const result = checkpoint(null).validate({
-      schema: {},
       type: 'primitive'
     }) as ValidationPrimitiveResult
     expect(result.pass).toBe(false)
@@ -86,6 +107,37 @@ describe('Validate primitive', () => {
 })
 
 describe('Validate object', () => {
+  it('should throw error when type is object but data is primitive', () => {
+    expect(() => {
+      checkpoint(true).validate({
+        type: 'object'
+      })
+    }).toThrow()
+    expect(() => {
+      checkpoint(123).validate({
+        type: 'object'
+      })
+    }).toThrow()
+    expect(() => {
+      checkpoint('hey').validate({
+        type: 'object'
+      })
+    }).toThrow()
+    expect(() => {
+      checkpoint(null).validate({
+        type: 'object'
+      })
+    }).toThrow()
+  })
+
+  it('should throw error when type is object but data is array', () => {
+    expect(() => {
+      checkpoint([]).validate({
+        type: 'object'
+      })
+    }).toThrow()
+  })
+
   it('should create a checkpoint', () => {
     const cp = checkpoint({ foo: 'bar' })
     expect(cp instanceof Checkpoint).toBe(true)
@@ -410,6 +462,68 @@ describe('Validate object', () => {
 
 describe('Validate primitive array', () => {
   // TODO: test stringValidation
+  it('should throw error when type is primitive array but data is primitive', () => {
+    expect(() => {
+      checkpoint(true).validate({
+        type: 'array',
+        arrayType: 'primitive'
+      })
+    }).toThrow()
+    expect(() => {
+      checkpoint(123).validate({
+        type: 'array',
+        arrayType: 'primitive'
+      })
+    }).toThrow()
+    expect(() => {
+      checkpoint('hey').validate({
+        type: 'array',
+        arrayType: 'primitive'
+      })
+    }).toThrow()
+    expect(() => {
+      checkpoint(null).validate({
+        type: 'array',
+        arrayType: 'primitive'
+      })
+    }).toThrow()
+  })
+
+  it('should throw error when type is primitive array but data is object', () => {
+    expect(() => {
+      checkpoint({}).validate({
+        type: 'array',
+        arrayType: 'primitive'
+      })
+    }).toThrow()
+  })
+
+  it('should throw error when type is primitive array but data is object array', () => {
+    expect(() => {
+      checkpoint([{}]).validate({
+        type: 'array',
+        arrayType: 'primitive'
+      })
+    }).toThrow()
+  })
+
+  it('should throw error when type is object array but data is 2D array', () => {
+    expect(() => {
+      checkpoint([[]]).validate({
+        type: 'array',
+        arrayType: 'object'
+      })
+    }).toThrow()
+  })
+
+  it('should return passed result when type is primitive array and data is empty array', () => {
+    const result = checkpoint([]).validate({
+      type: 'array',
+      arrayType: 'primitive'
+    })
+    expect(result.pass).toBe(true)
+  })
+
   it('should return basic passed result', () => {
     const result = checkpoint(['ABCD', 'EFG']).validate({
       schema: { type: 'string' },
@@ -551,6 +665,68 @@ describe('Validate primitive array', () => {
 
 describe('Validate object array', () => {
   // TODO: test stringValidation
+  it('should throw error when type is object array but data is primitive', () => {
+    expect(() => {
+      checkpoint(true).validate({
+        type: 'array',
+        arrayType: 'object'
+      })
+    }).toThrow()
+    expect(() => {
+      checkpoint(123).validate({
+        type: 'array',
+        arrayType: 'object'
+      })
+    }).toThrow()
+    expect(() => {
+      checkpoint('hey').validate({
+        type: 'array',
+        arrayType: 'object'
+      })
+    }).toThrow()
+    expect(() => {
+      checkpoint(null).validate({
+        type: 'array',
+        arrayType: 'object'
+      })
+    }).toThrow()
+  })
+
+  it('should throw error when type is object array but data is object', () => {
+    expect(() => {
+      checkpoint({}).validate({
+        type: 'array',
+        arrayType: 'object'
+      })
+    }).toThrow()
+  })
+
+  it('should throw error when type is object array but data is primitive array', () => {
+    expect(() => {
+      checkpoint(['hey']).validate({
+        type: 'array',
+        arrayType: 'object'
+      })
+    }).toThrow()
+  })
+
+  it('should throw error when type is object array but data is 2D array', () => {
+    expect(() => {
+      checkpoint([[]]).validate({
+        type: 'array',
+        arrayType: 'object'
+      })
+    }).toThrow()
+  })
+
+  it('should return passed result when type is object array and data is empty array', () => {
+    const result = checkpoint([]).validate({
+      type: 'array',
+      arrayType: 'object'
+    })
+    expect(result.pass).toBe(true)
+  })
+
   it('should return basic passed result', () => {
     const result = checkpoint([{ foo: 'ABCD' }, { foo: 'EFG' }]).validate({
       schema: { foo: { type: 'string' } },

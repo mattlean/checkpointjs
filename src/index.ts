@@ -206,7 +206,7 @@ export class Checkpoint {
     }
 
     if (type === 'object') {
-      if (typeof this.data !== 'object' || Array.isArray(this.data)) {
+      if (this.data === null || typeof this.data !== 'object' || Array.isArray(this.data)) {
         throw new Error('Data is not an object')
       }
 
