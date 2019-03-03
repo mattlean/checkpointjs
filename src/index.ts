@@ -12,7 +12,8 @@ import {
   SchemaObjectValidationResult,
   SchemaValue,
   SchemaValueValidationResult,
-  TransformationOptions,
+  TransformationCommand,
+  TransformationCommands,
   ValidationArrayResult,
   ValidationArrayObjectResult,
   ValidationArrayPrimitiveResult,
@@ -40,7 +41,7 @@ export class Checkpoint {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public constructor(data: any) {
-    this.data = data
+    this.data = cloneDeep(data)
   }
 
   /**
@@ -568,8 +569,27 @@ export class Checkpoint {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public transform(options: TransformationOptions): any {
-    return this.data // TODO
+  public transform(commands: TransformationCommand | TransformationCommands): any {
+    let c
+
+    if (!Array.isArray(commands)) c = [commands]
+    else c = commands
+
+    c.forEach(command => {
+      if (typeof this.data === 'object' && !Array.isArray(this.data)) {
+        Object.keys(this.data).forEach(key => {
+          const currVal = this.data[key]
+
+          if (command === 'clean') {
+            if (currVal === undefined) delete this.data[key]
+          } else if (command === 'trim') {
+            if (typeof currVal === 'string') this.data[key] = currVal.trim()
+          }
+        })
+      }
+    })
+
+    return this
   }
 }
 

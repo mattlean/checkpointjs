@@ -866,3 +866,43 @@ describe('Validate object array', () => {
     expect(passedResults[5]).toBe('[3]: foo')
   })
 })
+
+describe('Transform object', () => {
+  it('should clean undefined keys in data', () => {
+    expect(
+      checkpoint({ a: 1, b: 2, c: undefined, d: 4, e: undefined })
+        .transform('clean')
+        .output()
+    ).toEqual({
+      a: 1,
+      b: 2,
+      d: 4
+    })
+  })
+
+  it('should trim string vals in data', () => {
+    expect(
+      checkpoint({ a: '    hey', b: '      ho      ', c: "let's go     ", d: 'yeeeeet' })
+        .transform('trim')
+        .output()
+    ).toEqual({
+      a: 'hey',
+      b: 'ho',
+      c: "let's go",
+      d: 'yeeeeet'
+    })
+  })
+
+  it('should clean undefined keys then trim string vals in data with command series', () => {
+    expect(
+      checkpoint({ a: '    hey', b: '      ho      ', c: "let's go     ", d: undefined, e: 'yeeeeet' })
+        .transform(['clean', 'trim'])
+        .output()
+    ).toEqual({
+      a: 'hey',
+      b: 'ho',
+      c: "let's go",
+      e: 'yeeeeet'
+    })
+  })
+})

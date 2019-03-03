@@ -13,7 +13,7 @@ Import the library in your code as an ES2015 Module:
 import checkpoint from 'checkpointjs'
 ```
 
-*Note: This library supports TypeScript! The source is completely written in it and declaration files are included in the build which can be found in the `dist/` folder.*
+*Note: This library supports TypeScript. The source is completely written in it and declaration files are included in the build which can be found in the `dist/` folder.*
 
 ## Examples
 *TODO*

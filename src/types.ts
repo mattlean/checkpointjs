@@ -89,7 +89,9 @@ interface StringValidation {
   }
 }
 
-export interface TransformationOptions {} // eslint-disable-line @typescript-eslint/no-empty-interface
+export type TransformationCommand = 'clean' | 'trim'
+
+export type TransformationCommands = TransformationCommand[]
 
 export type ValidationArrayResult = ValidationArrayObjectResult | ValidationArrayPrimitiveResult
 
