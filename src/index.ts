@@ -23,6 +23,28 @@ import {
   ValidationPrimitiveResult
 } from './types'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const transform = (data: any, commands: TransformationCommand | TransformationCommands): any => {
+  const c = Array.isArray(commands) ? commands : [commands]
+  const d = data
+
+  c.forEach(command => {
+    if (typeof d === 'object' && !Array.isArray(d)) {
+      Object.keys(d).forEach(key => {
+        const currVal = d[key]
+
+        if (command === 'clean') {
+          if (currVal === undefined) delete d[key]
+        } else if (command === 'trim') {
+          if (typeof currVal === 'string') d[key] = currVal.trim()
+        }
+      })
+    }
+  })
+
+  return d
+}
+
 /**
  * Checkpoint class
  * @function output Output data
@@ -570,25 +592,7 @@ export class Checkpoint {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public transform(commands: TransformationCommand | TransformationCommands): any {
-    let c
-
-    if (!Array.isArray(commands)) c = [commands]
-    else c = commands
-
-    c.forEach(command => {
-      if (typeof this.data === 'object' && !Array.isArray(this.data)) {
-        Object.keys(this.data).forEach(key => {
-          const currVal = this.data[key]
-
-          if (command === 'clean') {
-            if (currVal === undefined) delete this.data[key]
-          } else if (command === 'trim') {
-            if (typeof currVal === 'string') this.data[key] = currVal.trim()
-          }
-        })
-      }
-    })
-
+    transform(this.data, commands)
     return this
   }
 }
