@@ -880,6 +880,20 @@ describe('Transform object', () => {
     })
   })
 
+  it('should replace keys in data', () => {
+    expect(
+      checkpoint({ a: 1, b: 2, c: undefined, d: 4, e: undefined })
+        .transform('replace', [undefined, null])
+        .output()
+    ).toEqual({
+      a: 1,
+      b: 2,
+      c: null,
+      d: 4,
+      e: null
+    })
+  })
+
   it('should trim string vals in data', () => {
     expect(
       checkpoint({ a: '    hey', b: '      ho      ', c: "let's go     ", d: 'yeeeeet' })

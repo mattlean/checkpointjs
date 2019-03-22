@@ -23,8 +23,13 @@ import {
   ValidationPrimitiveResult
 } from './types'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const transform = (data: any, commands: TransformationCommand | TransformationCommands): any => {
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export const transform = (
+  data: any,
+  commands: TransformationCommand | TransformationCommands,
+  commandOptions?: any
+): any => {
+  /* eslint-enable @typescript-eslint/no-explicit-any */
   const c = Array.isArray(commands) ? commands : [commands]
   const d = data
 
@@ -35,6 +40,10 @@ export const transform = (data: any, commands: TransformationCommand | Transform
 
         if (command === 'clean') {
           if (currVal === undefined) delete d[key]
+        } else if (command === 'replace') {
+          if (Array.isArray(commandOptions) && commandOptions.length > 1) {
+            if (currVal === commandOptions[0]) d[key] = commandOptions[1]
+          }
         } else if (command === 'trim') {
           if (typeof currVal === 'string') d[key] = currVal.trim()
         }
@@ -591,8 +600,8 @@ export class Checkpoint {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public transform(commands: TransformationCommand | TransformationCommands): any {
-    transform(this.data, commands)
+  public transform(commands: TransformationCommand | TransformationCommands, commandOptions?: any): any {
+    transform(this.data, commands, commandOptions)
     return this
   }
 }

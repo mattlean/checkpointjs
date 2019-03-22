@@ -89,7 +89,7 @@ interface StringValidation {
   }
 }
 
-export type TransformationCommand = 'clean' | 'trim'
+export type TransformationCommand = 'clean' | 'replace' | 'trim'
 
 export type TransformationCommands = TransformationCommand[]
 
