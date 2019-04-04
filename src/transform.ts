@@ -13,23 +13,27 @@ const transform = (data: any, commands: TransformationCommand | TransformationCo
   const c = Array.isArray(commands) ? commands : [commands]
   const d = data
 
-  c.forEach(command => {
-    if (typeof d === 'object' && !Array.isArray(d)) {
-      Object.keys(d).forEach(key => {
-        const currVal = d[key]
+  c.forEach(
+    (command): void => {
+      if (typeof d === 'object' && !Array.isArray(d)) {
+        Object.keys(d).forEach(
+          (key): void => {
+            const currVal = d[key]
 
-        if (command === 'clean') {
-          if (currVal === undefined) delete d[key]
-        } else if (command === 'replace') {
-          if (Array.isArray(commandOptions) && commandOptions.length > 1) {
-            if (currVal === commandOptions[0]) d[key] = commandOptions[1]
+            if (command === 'clean') {
+              if (currVal === undefined) delete d[key]
+            } else if (command === 'replace') {
+              if (Array.isArray(commandOptions) && commandOptions.length > 1) {
+                if (currVal === commandOptions[0]) d[key] = commandOptions[1]
+              }
+            } else if (command === 'trim') {
+              if (typeof currVal === 'string') d[key] = currVal.trim()
+            }
           }
-        } else if (command === 'trim') {
-          if (typeof currVal === 'string') d[key] = currVal.trim()
-        }
-      })
+        )
+      }
     }
-  })
+  )
 
   return d
 }

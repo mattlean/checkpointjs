@@ -63,7 +63,7 @@ function createValidationResult(data: any, rules, type, arrayType?): any {
   const validationBaseResult: ValidationBaseResult = {
     pass: true,
     rules,
-    showFailedResults() {
+    showFailedResults(): string[] {
       const failedResults = []
 
       if (type === 'primitive') {
@@ -76,49 +76,61 @@ function createValidationResult(data: any, rules, type, arrayType?): any {
       if (type === 'object') {
         const resultsDataKeys = Object.keys(this.results.data)
 
-        resultsDataKeys.forEach(key => {
-          const currResult = this.results.data[key]
-          if (!currResult.pass) {
-            failedResults.push(...this.results.data[key].reasons)
+        resultsDataKeys.forEach(
+          (key): void => {
+            const currResult = this.results.data[key]
+            if (!currResult.pass) {
+              failedResults.push(...this.results.data[key].reasons)
+            }
           }
-        })
+        )
 
         return failedResults
       }
 
       if (type === 'array') {
         if (arrayType === 'object') {
-          this.results.data.forEach((obj, i) => {
-            const resultsDataKeys = Object.keys(obj)
+          this.results.data.forEach(
+            (obj, i): void => {
+              const resultsDataKeys = Object.keys(obj)
 
-            resultsDataKeys.forEach(key => {
-              const currResult = {
-                pass: obj[key].pass,
-                reasons: Array.from(obj[key].reasons)
-              }
-              if (!currResult.pass) {
-                currResult.reasons.forEach((reason, j) => {
-                  currResult.reasons[j] = `[${i}]: ${reason}`
-                })
-                failedResults.push(...currResult.reasons)
-              }
-            })
-          })
+              resultsDataKeys.forEach(
+                (key): void => {
+                  const currResult = {
+                    pass: obj[key].pass,
+                    reasons: Array.from(obj[key].reasons)
+                  }
+                  if (!currResult.pass) {
+                    currResult.reasons.forEach(
+                      (reason, j): void => {
+                        currResult.reasons[j] = `[${i}]: ${reason}`
+                      }
+                    )
+                    failedResults.push(...currResult.reasons)
+                  }
+                }
+              )
+            }
+          )
         }
 
         if (arrayType === 'primitive') {
-          this.results.data.forEach((result, i) => {
-            const currResult = {
-              pass: result.pass,
-              reasons: Array.from(result.reasons)
+          this.results.data.forEach(
+            (result, i): void => {
+              const currResult = {
+                pass: result.pass,
+                reasons: Array.from(result.reasons)
+              }
+              if (!currResult.pass) {
+                currResult.reasons.forEach(
+                  (reason, j): void => {
+                    currResult.reasons[j] = `[${i}]: ${reason}`
+                  }
+                )
+                failedResults.push(...currResult.reasons)
+              }
             }
-            if (!currResult.pass) {
-              currResult.reasons.forEach((reason, j) => {
-                currResult.reasons[j] = `[${i}]: ${reason}`
-              })
-              failedResults.push(...currResult.reasons)
-            }
-          })
+          )
         }
 
         return failedResults
@@ -126,7 +138,7 @@ function createValidationResult(data: any, rules, type, arrayType?): any {
 
       throw new Error('Invalid type provided')
     },
-    showPassedResults() {
+    showPassedResults(): string[] {
       const passedResults = []
 
       if (type === 'primitive') {
@@ -139,36 +151,42 @@ function createValidationResult(data: any, rules, type, arrayType?): any {
       if (type === 'object') {
         const resultsDataKeys = Object.keys(this.results.data)
 
-        resultsDataKeys.forEach(key => {
-          const currResult = this.results.data[key]
-          if (currResult.pass) {
-            passedResults.push(key)
+        resultsDataKeys.forEach(
+          (key): void => {
+            const currResult = this.results.data[key]
+            if (currResult.pass) {
+              passedResults.push(key)
+            }
           }
-        })
+        )
 
         return passedResults
       }
 
       if (type === 'array') {
         if (arrayType === 'object') {
-          this.results.data.forEach((obj, i) => {
-            const resultsDataKeys = Object.keys(obj)
+          this.results.data.forEach(
+            (obj, i): void => {
+              const resultsDataKeys = Object.keys(obj)
 
-            resultsDataKeys.forEach(key => {
-              const currResult = obj[key]
-              if (currResult.pass) {
-                passedResults.push(`[${i}]: ${key}`)
-              }
-            })
-          })
+              resultsDataKeys.forEach(
+                (key): void => {
+                  const currResult = obj[key]
+                  if (currResult.pass) {
+                    passedResults.push(`[${i}]: ${key}`)
+                  }
+                }
+              )
+            }
+          )
         }
 
         if (arrayType === 'primitive') {
-          this.results.data.forEach((currResult, i) => {
-            if (currResult.pass) {
-              passedResults.push(i)
+          this.results.data.forEach(
+            (currResult, i): void => {
+              if (currResult.pass) passedResults.push(i)
             }
-          })
+          )
         }
 
         return passedResults
