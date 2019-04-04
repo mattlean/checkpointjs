@@ -228,7 +228,8 @@ function createValidationResult(data: any, rules, type, arrayType?): any {
     }
 
     if (data.length > 0) {
-      if (arrayType === 'primitive' && typeof data[0] === 'object') {
+      // TODO: need to check type of entire array instead of just first item
+      if (arrayType === 'primitive' && (data[0] !== null && typeof data[0] === 'object')) {
         throw new Error('Data is not an array of primitive types')
       }
 
