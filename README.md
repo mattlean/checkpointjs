@@ -5,7 +5,14 @@ Validate and transform data.
 
 ## Setup
 ### Download
-Install the [`checkpointjs` package](https://npmjs.com/package/checkpointjs) with a package manager like npm or Yarn.
+Install the [`checkpointjs` package](https://npmjs.com/package/checkpointjs) with one of the following commands:
+- [npm](https://npmjs.com): `npx install-peerdeps --dev checkpointjs`
+- [Yarn](https://yarnpkg.com):
+  ```
+  yarn install lodash
+  yarn install validator
+  yarn install checkpointjs
+  ```
 
 You can also download and extract a release from here from the [Checkpoint.js GitHub repository releases page](https://github.com/IsaacLean/checkpointjs/releases).
 
@@ -48,7 +55,7 @@ const result = checkpoint(data).validate({
 })
 ```
 
-*Note: This library supports TypeScript. The source is completely written in it. Declaration files are included in the `dist/` folder.*
+*Note: This library supports [TypeScript](https://www.typescriptlang.org). The source is completely written in it. Declaration files are included in the `dist/` folder.*
 
 ## API
 ### Validate
@@ -259,6 +266,25 @@ console.log(objectData) // { a: 'hey', c: 'ho', d: 'let\'s go' }
 
 ### Checkpoint
 *TODO*
+
+## Contributing
+### Setup
+Fork this repository. Then install dependencies with Yarn with the following command:
+`yarn`
+
+### Developing
+All library source code can be found in [`src/`](https://github.com/IsaacLean/checkpointjs/tree/master/src). Check the [issues](https://github.com/IsaacLean/checkpointjs/issues) to see if there's anything that you can tackle. When you want to attempt to merge into this repository, open a [pull request](https://github.com/IsaacLean/checkpointjs/pulls).
+
+### Building
+Builds are done with the [TypeScript compiler](https://www.typescriptlang.org/docs/handbook/compiler-options.html) and output to `/dist`. To build use one of the following commands:
+- npm: `npm run build`
+- Yarn: `yarn build`
+
+
+### Testing
+Tests are done with [Jest](https://jestjs.io) and can be found in [`src/__tests__`](https://github.com/IsaacLean/checkpointjs/tree/master/src/__tests__) as `*.test.ts` files. To run the tests use one of the following commands:
+- npm: `npm t`
+- Yarn: `yarn test`
 
 ## License
 This open source project is licensed under the [MIT License](https://github.com/IsaacLean/checkpointjs/blob/master/LICENSE).
