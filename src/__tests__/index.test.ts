@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import checkpoint, { Checkpoint } from '..'
 import ERRS from '../errs'
 import {
