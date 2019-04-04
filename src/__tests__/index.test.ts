@@ -919,4 +919,18 @@ describe('Transform object', () => {
       e: 'yeeeeet'
     })
   })
+
+  it('should clean undefined keys then trim string vals in data with chained commands', () => {
+    expect(
+      checkpoint({ a: '    hey', b: '      ho      ', c: "let's go     ", d: undefined, e: 'yeeeeet' })
+        .transform('clean')
+        .transform('trim')
+        .output()
+    ).toEqual({
+      a: 'hey',
+      b: 'ho',
+      c: "let's go",
+      e: 'yeeeeet'
+    })
+  })
 })

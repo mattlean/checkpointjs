@@ -126,3 +126,5 @@ export interface ValidationPrimitiveResult extends ValidationBaseResult {
   data: any // eslint-disable-line @typescript-eslint/no-explicit-any
   results: ResultsPrimitiveData
 }
+
+export type ValidationResult = ValidationArrayResult | ValidationObjectResult | ValidationPrimitiveResult
