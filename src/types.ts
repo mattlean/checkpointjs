@@ -89,9 +89,30 @@ interface StringValidation {
   }
 }
 
-export type TransformationCommand = 'clean' | 'replace' | 'trim'
+export type TransformClean = TransformCleanName | TransformCleanObject
+
+export type TransformCleanName = 'clean'
+
+export interface TransformCleanObject {
+  name: TransformCleanName
+}
+
+export type TransformationCommand = TransformClean | TransformReplace | TransformTrim
 
 export type TransformationCommands = TransformationCommand[]
+
+export interface TransformReplace {
+  name: 'replace'
+  options: any[] // eslint-disable-line @typescript-eslint/no-explicit-any
+}
+
+export type TransformTrim = TransformTrimName | TransformTrimObject
+
+export type TransformTrimName = 'trim'
+
+export interface TransformTrimObject {
+  name: TransformTrimName
+}
 
 export type ValidationArrayResult = ValidationArrayObjectResult | ValidationArrayPrimitiveResult
 

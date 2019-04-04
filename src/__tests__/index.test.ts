@@ -884,7 +884,7 @@ describe('Transform object', () => {
   it('should replace keys in data', () => {
     expect(
       checkpoint({ a: 1, b: 2, c: undefined, d: 4, e: undefined })
-        .transform('replace', [undefined, null])
+        .transform({ name: 'replace', options: [undefined, null] })
         .output()
     ).toEqual({
       a: 1,
@@ -911,7 +911,7 @@ describe('Transform object', () => {
   it('should clean undefined keys then trim string vals in data with command series', () => {
     expect(
       checkpoint({ a: '    hey', b: '      ho      ', c: "let's go     ", d: undefined, e: 'yeeeeet' })
-        .transform(['clean', 'trim'])
+        .transform([{ name: 'clean' }, 'trim'])
         .output()
     ).toEqual({
       a: 'hey',
@@ -925,7 +925,7 @@ describe('Transform object', () => {
     expect(
       checkpoint({ a: '    hey', b: '      ho      ', c: "let's go     ", d: undefined, e: 'yeeeeet' })
         .transform('clean')
-        .transform('trim')
+        .transform({ name: 'trim' })
         .output()
     ).toEqual({
       a: 'hey',

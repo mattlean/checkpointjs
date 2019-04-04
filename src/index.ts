@@ -40,9 +40,8 @@ export class Checkpoint {
    * @param commandOptions Transformation command options
    * @returns Current Checkpoint
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public transform(commands: TransformationCommand | TransformationCommands, commandOptions?: any): Checkpoint {
-    transform(this.data, commands, commandOptions)
+  public transform(commands: TransformationCommand | TransformationCommands): Checkpoint {
+    transform(this.data, commands)
     return this
   }
 
