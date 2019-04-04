@@ -63,6 +63,9 @@ validate(data, rules)
 checkpoint(data).validate(rules)
 ```
 
+#### Result
+*TODO*
+
 #### Schema
 ##### allowNull
 - Description: Determines if a null value is allowed.
@@ -205,6 +208,10 @@ console.log(objectArrayValidationResult.pass) // true
 ```
 
 #### Options
+##### exitASAP
+*TODO*
+
+##### requireMode
 *TODO*
 
 ### Transform
