@@ -52,6 +52,8 @@ const result = checkpoint(data).validate({
 
 ## API
 ### Validate
+Validates the input data. Returns the results of the validation.
+
 #### Functions
 ```javascript
 // Direct Function Import
@@ -63,7 +65,7 @@ checkpoint(data).validate(rules)
 
 #### Schema
 ##### allowNull
-- Description: Allow null value.
+- Description: Determines if a null value is allowed.
 - Type: `boolean`
 - Default: `false`
 
@@ -109,6 +111,10 @@ console.log(objectArrayValidationResult.pass) // true
 ```
 
 ##### isRequired
+- Description: Determines if the value is required.
+- Type: `boolean`
+- Default: `false`
+
 ```javascript
 // Primitive
 const primitiveData = 123
@@ -154,6 +160,9 @@ console.log(objectArrayValidationResult.pass) // true
 *TODO*
 
 ##### type
+- Description: Requires a matching type for the value.
+- Type: `string`
+
 ```javascript
 // Primitive
 const primitiveData = 'foo'
@@ -199,7 +208,47 @@ console.log(objectArrayValidationResult.pass) // true
 *TODO*
 
 ### Transform
-*TODO*
+Transforms and mutates the input data. Returns the transformed data.
+
+#### Functions
+```javascript
+// Direct Function Import
+transform(data, commands)
+
+// Checkpoint Instantiation
+checkpoint(data).transform(commands)
+```
+
+#### Commands
+##### clean
+- Description: Removes undefined values.
+
+```javascript
+// Object
+const objectData = { a: 123, b: undefined, c: 456, d: 789, e: undefined }
+transform(objectData, 'clean')
+console.log(objectData) // { a: 123, c: 456, d: 789 }
+```
+
+##### replace
+- Description: Replaces values with another value.
+
+```javascript
+// Object
+const objectData = { a: 123, b: 456, c: 789 }
+transform(objectData, { name: 'replace', options: [456, 'xyz'] })
+console.log(objectData) // { a: 123, c: 'xyz', d: 789 }
+```
+
+##### trim
+- Description: Trims whitespace from strings.
+
+```javascript
+// Object
+const objectData = { a: 'hey    ', b: '    ho', c: '     let\'s go     ' }
+transform(objectData, 'trim')
+console.log(objectData) // { a: 'hey', c: 'ho', d: 'let\'s go' }
+```
 
 ### Checkpoint
 *TODO*

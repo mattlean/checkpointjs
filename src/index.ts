@@ -27,7 +27,7 @@ export class Checkpoint {
 
   /**
    * Output data
-   * @returns Deeply cloned Checkpoint data
+   * @returns Deep cloned Checkpoint data
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public output(): any {

@@ -301,6 +301,7 @@ const validateSchemaValue = (
   if (value === null) valType = 'null'
   else valType = typeof value
 
+  // TODO: type check multiple types at once
   if (
     type &&
     ((value === null && type !== 'null' && !allowNull) ||

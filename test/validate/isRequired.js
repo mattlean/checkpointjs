@@ -1,10 +1,10 @@
 /* eslint-disable no-console */
-const { validate } = require('../dist')
+const { validate } = require('../../dist')
 
 // Primitive
-const primitiveData = 'foo'
+const primitiveData = 123
 const primitiveValidationResult = validate(primitiveData, {
-  schema: { type: 'string' },
+  schema: { isRequired: true },
   type: 'primitive'
 })
 console.log(primitiveValidationResult.pass) // true
@@ -13,16 +13,16 @@ console.log(primitiveValidationResult.pass) // true
 const objectData = { foo: 123 }
 const objectValidationResult = validate(objectData, {
   schema: {
-    foo: { type: 'number' }
+    foo: { isRequired: true }
   },
   type: 'object'
 })
 console.log(objectValidationResult.pass) // true
 
 // Array of primitives
-const primitiveArrayData = [true, false]
+const primitiveArrayData = [123, 456]
 const primitiveArrayValidationResult = validate(primitiveArrayData, {
-  schema: { type: 'boolean' },
+  schema: { isRequired: true },
   type: 'array',
   arrayType: 'primitive'
 })
@@ -30,11 +30,11 @@ console.log(primitiveArrayValidationResult.pass) // true
 
 // Array of objects
 const objectArrayData = [
-  { foo: 'bar' },
-  { foo: 'baz' }
+  { foo: 123 },
+  { foo: 456 }
 ]
 const objectArrayValidationResult = validate(objectArrayData, {
-  schema: { type: 'string' },
+  schema: { isRequired: true },
   type: 'array',
   arrayType: 'object'
 })
