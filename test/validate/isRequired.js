@@ -29,10 +29,7 @@ const primitiveArrayValidationResult = validate(primitiveArrayData, {
 console.log(primitiveArrayValidationResult.pass) // true
 
 // Array of objects
-const objectArrayData = [
-  { foo: 123 },
-  { foo: 456 }
-]
+const objectArrayData = [{ foo: 123 }, { foo: 456 }]
 const objectArrayValidationResult = validate(objectArrayData, {
   schema: { isRequired: true },
   type: 'array',
