@@ -42,11 +42,11 @@
   "homepage": "https://github.com/IsaacLean/checkpointjs#readme",
   "dependencies": {
     "lodash": "^4.17.11",
-    "validator": "^10.11.0"
+    "validator": "^13.7.0"
   },
   "peerDependencies": {
     "lodash": "^4.17.11",
-    "validator": "^10.11.0"
+    "validator": "^13.7.0"
   },
   "devDependencies": {
     "@types/jest": "^24.0.11",
